@@ -130,4 +130,5 @@ dmypy.json
 
 #Own stuff
 rsa_key.bin
-client_test_1.py
+client_test_*
+*.swp
