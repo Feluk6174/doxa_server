@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#Own stuff
+rsa_key.bin
+client_test_1.py
