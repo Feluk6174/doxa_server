@@ -10,10 +10,21 @@ The following installation is for Linux, concretly, ubuntu and arch based distro
 
 This project has beentested using python 3.10.7.
 
-### installing the database
-First, we have to install the database. We use Mariadb pakage, but a mysql database should also work, but this has not been tested.
+First run the following commands:
+```
+    $ git clone https://github.com/Feluk6174/TdR_server.git
+    $ cd TdR_server
+```
 
-To install mariad on arch, run the following commands:
+Then install the libraries using the followuing command:
+```
+    $ pip install -r requirements.txt
+```
+
+### installing the database
+First, we have to install the database. We use `mariadb`, but a `mysql` database should also work, but this has not been tested.
+
+To install `mariadb` on arch, run the following commands:
 
 ```
     $ sudo pacman -S mariadb
@@ -40,4 +51,54 @@ To improve the seurity of the instalation, run the following command:
 
 Select the configuations that you find adecuate.
 
-Then 
+#### Creating the user
+Run the following command to enter the database:
+```
+    $ sudo mysql
+```
+
+Run the following command to create the database.
+```
+    MariaDB> CREATE DATABASE TdR;
+```
+
+Run the following command to create the user that will manage the database, replacing `[password]` with the password for the user.
+```
+    MariaDB> CREATE USER 'TdR'@'localhost' IDENTIFIED BY '[password]';
+```
+
+Run the following command to give acces to the user to the database.
+```
+    MariaDB> GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD on TdR.* TO 'TdR'@'localhost' WITH GRANT OPTION;
+```
+
+Run the following command to make sure that new privileges are put to efect.
+```
+    MariaDB> FLUSH PRIVILEGES;
+```
+
+Now you can exit the database, using `Ctrl+C` or running the following command `exit`.
+
+Finaly finish setting up the database execute the `setup_db.py` script:
+```
+    $ python setup_db.py
+```
+### Starting the program
+Creating a service, will make that the program starts after system reboot.
+
+To do this, modify the `TdR.service`, replacing `[path]` with the path to `main.py` (you can get the path runing `pwd`, and appending `/main.py` to the end), and replacing `[port]` with the port where the program will run.
+
+Then copy the TdR.service file to the `/etc/systemd/system` folder.
+```
+    $ sudo cp ./TdR.service /etc/systemd/system
+```
+
+Finally we can start the program.
+```
+    $ sudo systemctl start TdR
+```
+
+And enable it, this will make the program start after reboot
+```
+    $ sudo systemctl enable TdR
+```
