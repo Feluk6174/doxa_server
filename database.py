@@ -3,6 +3,7 @@ import random
 import threading
 import time
 import log as log_lib
+import conf
 
 
 def log(*message, logger:log_lib.Logger = None):
@@ -36,10 +37,10 @@ class Database():
 
     def connect(self):
         self.connection = mysql.connector.connect(
-            host = "localhost", 
-            user = "root", 
-            password = "root",
-            database = "TdR"
+            host = conf.database("host"), 
+            user = conf.database("user"), 
+            password = conf.database("password"),
+            database = conf.database("database")
         )
 
     def stop(self):

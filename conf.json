@@ -1,0 +1,11 @@
+{
+    "database": {
+        "host": "localhost",
+        "user": "TdR",
+        "password": "[Your password to the user]",
+        "database": "TdR"
+    },
+    "api": {
+        "version": "0.0.0"
+    }
+}

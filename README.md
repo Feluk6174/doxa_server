@@ -11,42 +11,33 @@ The following installation is for Linux, concretly, ubuntu and arch based distro
 This project has beentested using python 3.10.7.
 
 ### installing the database
-First, we have to install the database. We use 
-```
-Mariadb
-```
-pakage, but a 
-```
-mysql
-```
-database should also work, but this has not been tested.
+First, we have to install the database. We use Mariadb pakage, but a mysql database should also work, but this has not been tested.
 
-To install
-```
-mariadb
-```
-on arch, we run the following commands:
+To install mariad on arch, run the following commands:
 
-```bash
+```
     $ sudo pacman -S mariadb
     $ sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
 ```
 
-To install it on ubuntu, we run the follwing:
-```bash
+To install it on ubuntu, run the follwing:
+```
     $ sudo apt update
     $ sudo apt install mariadb-server
 ```
 
-Then run the following commands, to start the database, and make that the database starts after system reboot: 
-```bash
+Run the following commands, to start the database, and make that the database starts after system reboot: 
+```
     $ sudo systemctl start mariadb.service
     $ sudo systemctl enable mariadb.service
 ```
 
-To improve the seurity of the instalation, we can run the following command:
+To improve the seurity of the instalation, run the following command:
 
-```bash
+```
     $ sudo mysql_secure_installation
 ```
 
+Select the configuations that you find adecuate.
+
+Then 
