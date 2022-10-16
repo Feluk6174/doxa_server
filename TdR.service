@@ -1,0 +1,11 @@
+[Unit]
+Description=My test service
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/bin/bash -c "cd [path] && git stash && git pull && python TdR1/backend_dev/main.py [port]"
+
+[Install]
+WantedBy=multi-user.target
