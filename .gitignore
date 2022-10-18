@@ -132,5 +132,7 @@ dmypy.json
 rsa_key.bin
 client_test_*
 *.swp
-TdR.service
-conf.json
+
+.
+./TdR.service
+./conf.json

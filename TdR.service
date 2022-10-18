@@ -9,3 +9,4 @@ ExecStart=/bin/bash -c "cd [path] && git stash && git pull && python TdR1/backen
 
 [Install]
 WantedBy=multi-user.target
+test
