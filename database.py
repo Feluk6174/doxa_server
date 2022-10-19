@@ -77,9 +77,16 @@ class Database():
                         self.return_response.append((self.queue[0][2], cursor.fetchall()))
 
                     except mysql.connector.Error as e:
-                        log("[ERROR]", e, logger = self.logger)
                         self.connect()
-                        self.return_response.append((self.queue[0][2], "ERROR"))
+                        try:
+                            cursor = self.connection.cursor()
+                            cursor.execute(self.queue[0][1])
+                            self.return_response.append((self.queue[0][2], cursor.fetchall()))
+                            
+                        except mysql.connector.Error as e:
+                            log("[ERROR]", e, logger = self.logger)
+                            self.connect()
+                            self.return_response.append((self.queue[0][2], "ERROR"))
 
                 elif self.queue[0][0] == "e":
                     try:
@@ -89,9 +96,16 @@ class Database():
                         self.return_response.append((self.queue[0][2], None))
                         
                     except mysql.connector.Error as e:
-                        log("[ERROR]", e, logger = self.logger)
                         self.connect()
-                        self.return_response.append((self.queue[0][2], "ERROR"))
+                        try:
+                            cursor = self.connection.cursor()
+                            cursor.execute(self.queue[0][1])
+                            self.connection.commit()
+                            self.return_response.append((self.queue[0][2], None))
+                        except mysql.connector.Error as e:
+                            log("[ERROR]", e, logger = self.logger)
+                            self.connect()
+                            self.return_response.append((self.queue[0][2], "ERROR"))
                 
                 elif self.queue[0][0] == "s":
                     self.queue.pop(0)

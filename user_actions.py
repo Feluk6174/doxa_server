@@ -164,13 +164,24 @@ def get_posts(msg_info:dict, connection:ClientConnection):
     sql = "SELECT * FROM posts"
 
     if not msg_info["user_name"] == "None":
-        if first:
-            first = False
-            sql += " WHERE"
-        else:
-            sql += " AND"
+        if type(msg_info["user_name"]) == str:
+            if first:
+                first = False
+                sql += " WHERE"
+            else:
+                sql += " AND"
 
-        sql += f" user_id = '{msg_info['user_name']}'"
+            sql += f" user_id = '{msg_info['user_name']}'"
+        elif type(msg_info["user_name"]) == list:
+            for user_name in msg_info["user_name"]:
+                if first:
+                    first = False
+                    sql += " WHERE"
+                else:
+                    sql += " AND"
+
+                sql += f" user_id = '{user_name}'"
+                
 
     if not msg_info["hashtag"] == "None":
         if first:

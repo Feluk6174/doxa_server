@@ -91,10 +91,16 @@ class Connection():
                 if response == "WRONG CHARS":
                     raise WrongCaracters(user_name=user_name)
 
-    def get_posts(self, sort_by:str = None, sort_order:Union[str, int] = None, user_name:str = None, hashtag:str = None, exclude_flags:str = None, include_flags:str = None, num:int = None):
+    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_flags:str = None, include_flags:str = None, num:int = None):
         #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'flags': 'str(10)', 'time_posted': int}
         posts = []
-        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": "{user_name}", "hashtag": "{hashtag}", "include_flags": "{include_flags}", "exclude_flags":"{exclude_flags}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}"'+"}"
+        if type(user_name) == str:
+            f_user_name = f'"{user_name}"'
+        elif type(user_name) == list:
+            f_user_name = user_name
+        else:
+            f_user_name = "None"
+        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_flags": "{include_flags}", "exclude_flags":"{exclude_flags}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}"'+"}"
         self.send(msg)
         num = int(self.recv())
         print(num)
