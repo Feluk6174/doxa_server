@@ -250,12 +250,13 @@ class NodeConnection():
             except socket.error as e:
                 logger.log("[ERROR]" + str(e))
                 connections.remove(self)
-                self.queue.append()
+                self.queue.append("kill")
                 break
 
             except json.decoder.JSONDecodeError as e:
                 logger.log("[ERROR]" + str(e) + " " + str(msg))
                 connections.remove(self)
+                self.queue.append("kill")
                 break
 
     def process_queue(self):
