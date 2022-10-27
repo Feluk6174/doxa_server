@@ -166,9 +166,9 @@ def get_posts(msg_info:dict, connection:ClientConnection):
     if not msg_info["user_name"] == "None":
         if first:
             first = False
-            sql += " WHERE"
+            sql += " WHERE ("
         else:
-            sql += " AND"
+            sql += " AND ("
 
         msg_info["user_name"] = msg_info["user_name"].split(",")
         logger.log(msg_info["user_name"])
