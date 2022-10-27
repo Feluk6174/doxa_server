@@ -174,6 +174,7 @@ def get_posts(msg_info:dict, connection:ClientConnection):
         logger.log(msg_info["user_name"])
         for i, user_name in enumerate(msg_info["user_name"]):
             sql += f" user_id = '{user_name}'"
+            logger.log(i, len(msg_info)-1, i == len(msg_info)-1)
             if not i == len(msg_info)-1:
                 sql += " OR"
             else:
