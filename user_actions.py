@@ -18,14 +18,14 @@ def new_post(msg_info:dict, connection:Union[ClientConnection, NodeConnection], 
     pub_key = db.querry(f"SELECT public_key FROM users WHERE user_name = '{msg_info['user_name']}'")
     pub_key = RSA.import_key(auth.reconstruct_key(pub_key[0][0], key_type="pub"))
 
-    if not auth.verify(pub_key, msg_info["signature"], msg_info["content"], msg_info["post_id"], msg_info["user_name"], msg_info["flags"], msg_info["time"]):
+    if not auth.verify(pub_key, msg_info["signature"], msg_info["content"], msg_info["post_id"], msg_info["user_name"], msg_info["background_color"], msg_info["time"]):
         connection.send("WRONG SIGNATURE")
         return
     
     #CREATE TABLE posts(id INT NOT NULL PRIMARY KEY, user_id VARCHAR(16) NOT NULL, post VARCHAR(255) NOT NULL, time_posted INT NOT NULL, FOREIGN KEY (user_id) REFERENCES users (user_name));")
     res = db.querry(f"SELECT * FROM posts WHERE id = '{msg_info['post_id']}';")
     if len(res) == 0:
-        sql = f"INSERT INTO posts(id, user_id, post, flags, time_posted, signature) VALUES('{msg_info['post_id']}', '{msg_info['user_name']}', '{msg_info['content']}', '{msg_info['flags']}', {int(msg_info['time'])}, '{msg_info['signature']}');"
+        sql = f"INSERT INTO posts(id, user_id, post, background_color, time_posted, signature) VALUES('{msg_info['post_id']}', '{msg_info['user_name']}', '{msg_info['content']}', '{msg_info['background_color']}', {int(msg_info['time'])}, '{msg_info['signature']}');"
         err = db.execute(sql)
         if not err == "ERROR":
             managment.broadcast(msg_info, ip)
@@ -138,7 +138,7 @@ def get_user_posts(msg_info:dict, connection:ClientConnection):
         logger.log(res)
 
     for i, post in enumerate(posts):
-        msg = "{"+f'"id": "{post[0]}", "user_id": "{post[1]}", "content": "{post[2]}", "flags": "{post[3]}", "time_posted": {post[4]}, "signature": "{post[5]}"'+"}"
+        msg = "{"+f'"id": "{post[0]}", "user_id": "{post[1]}", "content": "{post[2]}", "background_color": "{post[3]}", "time_posted": {post[4]}, "signature": "{post[5]}"'+"}"
         connection.send(msg)
         res = connection.recv_from_queue()
         if not res == "OK":
@@ -150,8 +150,8 @@ def get_posts(msg_info:dict, connection:ClientConnection):
     global db, logger
     logger.log(f"geting posts: {msg_info}")
     logger.log("debug 0")
-    #"user_name", "hashtag", "include_flags", "exclude_flags", "sort_by"
-    if not database.is_safe(msg_info['user_name'], msg_info["hashtag"], msg_info["include_flags"], msg_info["exclude_flags"], msg_info["sort_by"], msg_info["num"]):
+    #"user_name", "hashtag", "include_background_color", "exclude_background_color", "sort_by"
+    if not database.is_safe(msg_info['user_name'], msg_info["hashtag"], msg_info["include_background_color"], msg_info["exclude_background_color"], msg_info["sort_by"], msg_info["num"]):
         connection.send("0")
         res = connection.recv_from_queue()
         if not res == "OK":
@@ -191,28 +191,28 @@ def get_posts(msg_info:dict, connection:ClientConnection):
 
         sql += f" INSTR(post, '{msg_info['hashtag']}')"
 
-    if not msg_info["include_flags"] == "None":
-        logger.log("kek", type(msg_info["include_flags"]), msg_info["include_flags"])
-        for i in range(len(msg_info["include_flags"])):
-            if msg_info["include_flags"][i] == "1":
+    if not msg_info["include_background_color"] == "None":
+        logger.log("kek", type(msg_info["include_background_color"]), msg_info["include_background_color"])
+        for i in range(len(msg_info["include_background_color"])):
+            if msg_info["include_background_color"][i] == "1":
                 if first:
                     first = False
                     sql += " WHERE"
                 else:
                     sql += " AND"
                 
-                sql += f" SUBSTR(flags, {i+1}, 1) = '1'"
+                sql += f" background_color = '{msg_info['include_background_color']}'"
 
-    if not msg_info["exclude_flags"] == "None":
-        for i in range(len(msg_info["exclude_flags"])):
-            if msg_info["exclude_flags"][i] == "1":
+    if not msg_info["exclude_background_color"] == "None":
+        for i in range(len(msg_info["exclude_background_color"])):
+            if msg_info["exclude_background_color"][i] == "1":
                 if first:
                     first = False
                     sql += " WHERE"
                 else:
                     sql += " AND"
                 
-                sql += f" SUBSTR(flags, {i+1}, 1) = '0'"
+                sql += f" not background_color = '{msg_info['include_background_color']}'"
 
     if not msg_info["sort_by"] == "None":
         sql += f" ORDER BY {msg_info['sort_by']}"
@@ -242,7 +242,7 @@ def get_posts(msg_info:dict, connection:ClientConnection):
     logger.log("www", posts)
 
     for i, post in enumerate(posts):
-        msg = "{"+f'"id": "{post[0]}", "user_id": "{post[1]}", "content": "{post[2]}", "flags": "{post[3]}", "time_posted": {post[4]}, "signature": "{post[5]}"'+"}"
+        msg = "{"+f'"id": "{post[0]}", "user_id": "{post[1]}", "content": "{post[2]}", "background_color": "{post[3]}", "time_posted": {post[4]}, "signature": "{post[5]}"'+"}"
         connection.send(msg)
         res = connection.recv_from_queue()
         if not res == "OK":
@@ -270,12 +270,12 @@ def get_post(msg_info:dict, connection:ClientConnection):
     if not database.is_safe(msg_info["post_id"]):
         connection.send("WRONG CHARS")
         return
-    # (id, user_id, post, flags, time_posted, signature)
+    # (id, user_id, post, background_color, time_posted, signature)
     post = db.querry(f"SELECT * FROM posts WHERE id = '{msg_info['post_id']}';")
     logger.log(post)
     if not len(post) == 0:
         post = post[0]
-        msg = "{"+f'"id": "{post[0]}", "user_id": "{post[1]}", "content": "{post[2]}", "flags": "{post[3]}", "time_posted": {post[4]}, "signature": "{post[5]}"'+"}"
+        msg = "{"+f'"id": "{post[0]}", "user_id": "{post[1]}", "content": "{post[2]}", "background_color": "{post[3]}", "time_posted": {post[4]}, "signature": "{post[5]}"'+"}"
     else:
         msg = "{}"
     connection.send(msg)

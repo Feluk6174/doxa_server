@@ -33,15 +33,15 @@ class Connection():
             elif response == "DATABASE ERROR":
                 raise DatabaseError(msg)
 
-    def post(self, content:str, post_id:str, user_name:str, flags:str, priv_key):
+    def post(self, content:str, post_id:str, user_name:str, background_color:str, priv_key):
         time_posted = int(time.time())
-        signature = auth.sign(priv_key, content, post_id, user_name, flags, time_posted).decode("utf-8")
-        msg = "{"+f'"type": "ACTION", "action": "POST", "post_id": "{post_id}", "user_name": "{user_name}", "content": "{content}", "flags": "{flags}", "time": {time_posted}, "signature": "{signature}"'+"}"
+        signature = auth.sign(priv_key, content, post_id, user_name, background_color, time_posted).decode("utf-8")
+        msg = "{"+f'"type": "ACTION", "action": "POST", "post_id": "{post_id}", "user_name": "{user_name}", "content": "{content}", "background_color": "{background_color}", "time": {time_posted}, "signature": "{signature}"'+"}"
         self.send(msg)
         response = self.recv()
         if not response == "OK":
             if response == "WRONG CHARS":
-                raise WrongCaracters(user_name=user_name, public_key=content, profile_picture=post_id, info=flags)
+                raise WrongCaracters(user_name=user_name, public_key=content, profile_picture=post_id, info=background_color)
             elif response == "WRONG SIGNATURE":
                 raise WrongSignature()
             elif response == "DATABASE ERROR":
@@ -76,7 +76,7 @@ class Connection():
                 raise DatabaseError(msg)
 
     def get_user_posts(self, user_name:str):
-        #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'flags': 'str(10)', 'time_posted': int}
+        #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'background_color': 'str(10)', 'time_posted': int}
         posts = []
         msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": "{user_name}"'+"}"
         self.send(msg)
@@ -91,8 +91,8 @@ class Connection():
                 if response == "WRONG CHARS":
                     raise WrongCaracters(user_name=user_name)
 
-    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_flags:str = None, include_flags:str = None, num:int = None):
-        #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'flags': 'str(10)', 'time_posted': int}
+    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = None):
+        #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'background_color': 'str(10)', 'time_posted': int}
         posts = []
         if type(user_name) == str:
             f_user_name = f'"{user_name}"'
@@ -103,7 +103,7 @@ class Connection():
             f_user_name = f_user_name[:-1] +'"'
         else:
             f_user_name = "None"
-        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_flags": "{include_flags}", "exclude_flags":"{exclude_flags}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}"'+"}"
+        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}"'+"}"
         print(msg)
         self.send(msg)
         num = int(self.recv())
