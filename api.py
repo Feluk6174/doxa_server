@@ -97,10 +97,14 @@ class Connection():
         if type(user_name) == str:
             f_user_name = f'"{user_name}"'
         elif type(user_name) == list:
-            f_user_name = user_name
+            f_user_name = '"'
+            for u_name in user_name:
+                f_user_name += u_name + ","
+            f_user_name = f_user_name[:-1] +'"'
         else:
             f_user_name = "None"
         msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_flags": "{include_flags}", "exclude_flags":"{exclude_flags}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}"'+"}"
+        print(msg)
         self.send(msg)
         num = int(self.recv())
         print(num)
