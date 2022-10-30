@@ -1,11 +1,11 @@
 [Unit]
-Description=My test service
+Description=doxa
 After=multi-user.target
 
 [Service]
 Type=simple
 Restart=always
-ExecStart=/bin/bash -c "cd [path] && git stash && git pull && python doxa/backend_dev/main.py [port]"
+ExecStart=/bin/bash -c "cd [path] && python main.py [port]"
 
 [Install]
 WantedBy=multi-user.target

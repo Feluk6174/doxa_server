@@ -90,7 +90,7 @@ Finaly finish setting up the database execute the `setup_db.py` script:
 ### Starting the program
 Creating a service, will make that the program starts after system reboot.
 
-To do this, modify the `doxa.service`, replacing `[path]` with the path to `main.py` (you can get the path runing `pwd`, and appending `/main.py` to the end), and replacing `[port]` with the port where the program will run.
+To do this, modify the `doxa.service`, replacing `[path]` with the path to `main.py` (you can get the path runing `pwd`), and replacing `[port]` with the port where the program will run.
 
 Then copy the doxa.service file to the `/etc/systemd/system` folder.
 ```
