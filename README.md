@@ -81,6 +81,8 @@ Run the following command to make sure that new privileges are put to efect.
 
 Now you can exit the database, using `Ctrl+C` or running the following command `exit`.
 
+Next, modify the conf.json file, and change `[password]` for the password that you used while creating the database user.
+
 Finaly finish setting up the database execute the `setup_db.py` script:
 ```
     $ python setup_db.py
