@@ -282,6 +282,12 @@ class NodeConnection():
                 elif msg_info["action"] == "UPDATE INFO":
                     user_actions.change_info(msg_info, self, ip=self.ip)
 
+                elif msg_info["action"] == "EXPORT":
+                    managment.export_db(self)
+
+                elif msg_info["action"] == "IMPORT":
+                    managment.import_db(self)
+
                 if msg_info["action"] == "SEND":
                     self.send(msg_info["msg"])
 

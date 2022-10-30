@@ -32,6 +32,7 @@ class Database():
         self.queue = []
         self.return_response = []
         self.logger = logger
+        self.file = open("sql.txt", "a")
         thread = threading.Thread(target=self.proces_queue)
         thread.start()
 
@@ -66,6 +67,15 @@ class Database():
                     self.return_response.remove((queue_id, response[1]))
                     return response[1]
 
+    def import_db(self, commands:list):
+        queue_id = random.randint(1000000000, 9999999999)
+        self.queue.append("n", commands, queue_id)
+        while True:
+            for response in self.return_response:
+                if response[0] == queue_id:
+                    self.return_response.remove((queue_id, response[1]))
+                    return response[1]
+
     def proces_queue(self):
         log("[STARTED QUEUE PROCESOR]", logger=self.logger)
         while True:
@@ -94,6 +104,7 @@ class Database():
                         cursor.execute(self.queue[0][1])
                         self.connection.commit()
                         self.return_response.append((self.queue[0][2], None))
+                        self.file.write(self.queue[0][1]+"\n")
                         
                     except mysql.connector.Error as e:
                         self.connect()
@@ -106,6 +117,18 @@ class Database():
                             log("[ERROR]", e, logger = self.logger)
                             self.connect()
                             self.return_response.append((self.queue[0][2], "ERROR"))
+                
+                elif self.queue[0][0] == "n":
+                    try:
+                        cursor = self.connection.cursor()
+                        for command in self.queue[0][1]:
+                            cursor.execute(command)
+                        self.connection.commit()
+                        self.return_response.append((self.queue[0][2], "SUCCESS"))
+                    except mysql.connector.Error as e:
+                        log("[ERROR]", e, logger = self.logger)
+                        self.connect()
+                        self.return_response.append((self.queue[0][2], "ERROR"))
                 
                 elif self.queue[0][0] == "s":
                     self.queue.pop(0)

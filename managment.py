@@ -7,7 +7,21 @@ import math
 import log
 import database
 from conn import NodeConnection, ClientConnection
+from typing import Union
 
+def import_db(connection:NodeConnection):
+    global db
+    connection.send('"type": "ACTION", "action": "EXPORT"')
+    commands = connection.recv().split("\n")
+    if "" in commands:
+        commands.remove("")
+    db.import_db(commands)
+
+def export_db(connection:NodeConnection):
+    with open("sql.txt", "r") as f:
+        text = f.read()
+    connection.send(text)
+    
 def broadcast(msg, ip):
     global connections, logger
 
@@ -139,10 +153,12 @@ def main():
             manage_new_client(connection, conn_info)
 
 def start():
-    global get_suposed_connected, db
+    global get_suposed_connected, db, connections
     time.sleep(10)
     for i in range(get_suposed_connected(len(db.querry("SELECT * fROM ips;")))):
         connect_to_new_node()
+        if len(connections) == 1:
+            connections[0].queue.append('{"action": "IMPORT"}')
 
 def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:database.Database, get_HOST:str, get_IP:str, get_PORT:str, get_server:socket.socket):
     # sets global variables
