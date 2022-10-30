@@ -8,7 +8,9 @@ Simulations: https://github.com/Feluk6174/doxa_simulations
 ## Instalation guide
 The following installation is for Linux, concretly, ubuntu and arch based distros. The same or similar steps sould work with other OSs, but they might have to be adapted.
 
-This project has beentested using python 3.10.7.
+For the installation, the `git` pakage will be needed.
+
+This project has been tested using python 3.10.7 and python 3.10.4.
 
 First run the following commands:
 ```
@@ -69,7 +71,7 @@ Run the following command to create the user that will manage the database, repl
 
 Run the following command to give acces to the user to the database.
 ```
-    MariaDB> GRANT CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, REFERENCES, RELOAD on doxa.* TO 'doxa'@'localhost' WITH GRANT OPTION;
+    MariaDB> GRANT ALL PRIVILEGES ON doxa.* TO 'doxa'@'localhost';
 ```
 
 Run the following command to make sure that new privileges are put to efect.
