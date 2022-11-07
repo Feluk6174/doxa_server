@@ -114,7 +114,7 @@ class Connection():
         else:
             f_id = '"None"'
 
-        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}", "id", "{f_id}"'+"}"
+        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}", "id": {f_id}'+"}"
         print(msg)
         self.send(msg)
         num = int(self.recv())
