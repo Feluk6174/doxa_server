@@ -1,7 +1,7 @@
-import socket
 import json
 import auth
 import time
+import socket
 from Crypto.Hash import SHA256
 from typing import Union
 
@@ -91,7 +91,7 @@ class Connection():
                 if response == "WRONG CHARS":
                     raise WrongCaracters(user_name=user_name)
 
-    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = None):
+    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = None, id:Union[str, list] = None):
         #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'background_color': 'str(10)', 'time_posted': int}
         posts = []
         if type(user_name) == str:
@@ -103,22 +103,32 @@ class Connection():
             f_user_name = f_user_name[:-1] +'"'
         else:
             f_user_name = '"None"'
-        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}"'+"}"
-        print("sd,flksdjflksjdlkfjsdlkfjslkdjflk", msg)
+
+        if type(id) == str:
+            id = f'"{user_name}"'
+        elif type(id) == list:
+            f_id = '"'
+            for i in id:
+                f_id += i + ","
+            f_id = f_id[:-1] +'"'
+        else:
+            f_id = '"None"'
+
+        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}", "id": {f_id}'+"}"
+        print(msg)
         self.send(msg)
         num = int(self.recv())
-        print("a", num)
+        print(num)
         self.send('{"type": "RESPONSE", "response": "OK"}')
         if not num == 0: 
             for _ in range(num):
                 posts.append(json.loads(self.recv()))
                 self.send('{"type": "RESPONSE", "response": "OK"}')
             response = self.recv()
-            print("b", 5, response)
             if not response == "OK":
                 if response == "WRONG CHARS":
                     raise WrongCaracters(user_name=user_name)
-            print(posts)
+
             return posts
         response = self.recv()
         if not response == "OK":
