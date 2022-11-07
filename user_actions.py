@@ -151,7 +151,7 @@ def get_posts(msg_info:dict, connection:ClientConnection):
     logger.log(f"geting posts: {msg_info}")
     logger.log("debug 0")
     #"user_name", "hashtag", "include_background_color", "exclude_background_color", "sort_by"
-    if not database.is_safe(msg_info['user_name'], msg_info["hashtag"], msg_info["include_background_color"], msg_info["exclude_background_color"], msg_info["sort_by"], msg_info["num"]):
+    if not database.is_safe(msg_info['user_name'], msg_info["hashtag"], msg_info["include_background_color"], msg_info["exclude_background_color"], msg_info["sort_by"], msg_info["num"], msg_info["id"]):
         connection.send("0")
         res = connection.recv_from_queue()
         if not res == "OK":
@@ -180,7 +180,23 @@ def get_posts(msg_info:dict, connection:ClientConnection):
             else:
                 sql += ")"
 
-                
+    if not msg_info["id"] == "None":
+        if first:
+            first = False
+            sql += " WHERE ("
+        else:
+            sql += " AND ("
+
+        msg_info["id"] = msg_info["id"].split(",")
+        logger.log(msg_info["id"])
+        for i, id in enumerate(msg_info["id"]):
+            sql += f" id = '{id}'"
+            #logger.log(i, len(msg_info)-1, i == len(msg_info)-1)
+            if not i == len(msg_info["id"])-1:
+                sql += " OR"
+            else:
+                sql += ")"
+
 
     if not msg_info["hashtag"] == "None":
         if first:
