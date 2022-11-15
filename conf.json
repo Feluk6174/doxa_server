@@ -1,0 +1,11 @@
+{
+    "database": {
+        "host": "localhost",
+        "user": "doxa",
+        "password": "[Your password to the user]",
+        "database": "doxa"
+    },
+    "api": {
+        "version": "0.0.0"
+    }
+}
