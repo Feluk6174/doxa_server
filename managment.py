@@ -158,7 +158,7 @@ def start():
     for i in range(get_suposed_connected(len(db.querry("SELECT * fROM ips;")))):
         connect_to_new_node()
         if len(connections) == 1:
-            connections[0].queue.append('{"action": "IMPORT"}')
+            connections[0].queue.append(json.loads('{"action": "IMPORT"}'))
 
 def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:database.Database, get_HOST:str, get_IP:str, get_PORT:str, get_server:socket.socket):
     # sets global variables
