@@ -12,7 +12,7 @@ from typing import Union
 def import_db(connection:NodeConnection):
     global db
     connection.send('{"type": "ACTION", "action": "EXPORT"}')
-    commands = connection.recv_from_queue().replace("\u259f", "\'").split("\u259e")
+    commands = connection.recv_from_queue()["response"].replace("\u259f", "\'").split("\u259e")
     if "" in commands:
         commands.remove("")
     db.import_db(commands)
