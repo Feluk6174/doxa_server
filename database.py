@@ -69,7 +69,7 @@ class Database():
 
     def import_db(self, commands:list):
         queue_id = random.randint(1000000000, 9999999999)
-        self.queue.append("n", commands, queue_id)
+        self.queue.append(("n", commands, queue_id))
         while True:
             for response in self.return_response:
                 if response[0] == queue_id:
@@ -113,6 +113,7 @@ class Database():
                             cursor.execute(self.queue[0][1])
                             self.connection.commit()
                             self.return_response.append((self.queue[0][2], None))
+                            self.file.write(self.queue[0][1]+"\n")
                         except mysql.connector.Error as e:
                             log("[ERROR]", e, logger = self.logger)
                             self.connect()
@@ -123,6 +124,7 @@ class Database():
                         cursor = self.connection.cursor()
                         for command in self.queue[0][1]:
                             cursor.execute(command)
+                            self.file.write(command+"\n")
                         self.connection.commit()
                         self.return_response.append((self.queue[0][2], "SUCCESS"))
                     except mysql.connector.Error as e:
