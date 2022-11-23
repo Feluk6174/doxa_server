@@ -20,7 +20,8 @@ def import_db(connection:NodeConnection):
 def export_db(connection:NodeConnection):
     with open("sql.txt", "r") as f:
         text = f.read()
-    connection.send("{"+f'"type":"RESPONSE", "response":"{text.replace("\n", "\u259e").replace("\'", "\u259f")}"'+"}")
+    text = text.replace("\n", "\u259e").replace("\'", "\u259f")
+    connection.send("{"+f'"type":"RESPONSE", "response":"{text}"'+"}")
     
 def broadcast(msg, ip):
     global connections, logger
