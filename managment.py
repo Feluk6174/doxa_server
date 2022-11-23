@@ -11,8 +11,8 @@ from typing import Union
 
 def import_db(connection:NodeConnection):
     global db
-    connection.send('"type": "ACTION", "action": "EXPORT"')
-    commands = connection.recv().split("\n")
+    connection.send('{"type": "ACTION", "action": "EXPORT"}')
+    commands = connection.recv_from_queue().replace("\u259f", "\'").split("\u259e")
     if "" in commands:
         commands.remove("")
     db.import_db(commands)
@@ -20,7 +20,7 @@ def import_db(connection:NodeConnection):
 def export_db(connection:NodeConnection):
     with open("sql.txt", "r") as f:
         text = f.read()
-    connection.send(text)
+    connection.send("{"+f'"type":"RESPONSE", "response":"{text.replace("\n", "\u259e").replace("\'", "\u259f")}"'+"}")
     
 def broadcast(msg, ip):
     global connections, logger
