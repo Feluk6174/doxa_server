@@ -1,20 +1,28 @@
+import binascii
 import json
 import auth
 import time
 import socket
 from Crypto.Hash import SHA256
 from typing import Union
+import random
+import threading
 
 
 class Connection():
     def __init__(self):
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connection.connect(("195.181.244.246", 30003))
+        self.connection.connect(("195.181.244.246", random.randint(30002, 30002)))
 
         msg = '{"type": "CLIENT"}'
         self.connection.send(msg.encode("utf-8"))
         if self.connection.recv(1024).decode("utf-8") == "OK":
             print("[ESTABLISHED CONNECTION]")
+
+        self.response_queue = []
+
+        thread = threading.Thread(target=self.recv_queue)
+        thread.start()
 
     def register_user(self, user_name:str, public_key, key_path:str, profile_picture:str, info:str):
         time_registered = int(time.time())
@@ -34,6 +42,13 @@ class Connection():
                 raise DatabaseError(msg)
 
     def post(self, content:str, post_id:str, user_name:str, background_color:str, priv_key):
+        with open("advanced_settings.json", "r") as f:
+            advanced_options = json.loads(f.read())
+        if advanced_options["encryption"]:
+            if len(content) > 159:
+                content = content[:159:]
+            content = auth.encrypt(content)
+
         time_posted = int(time.time())
         signature = auth.sign(priv_key, content, post_id, user_name, background_color, time_posted).decode("utf-8")
         msg = "{"+f'"type": "ACTION", "action": "POST", "post_id": "{post_id}", "user_name": "{user_name}", "content": "{content}", "background_color": "{background_color}", "time": {time_posted}, "signature": "{signature}"'+"}"
@@ -91,10 +106,12 @@ class Connection():
                 if response == "WRONG CHARS":
                     raise WrongCaracters(user_name=user_name)
 
-    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = None, id:Union[str, list] = None):
+    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = "10", id:Union[str, list] = None):
         #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'background_color': 'str(10)', 'time_posted': int}
         posts = []
-        if type(user_name) == str:
+        if user_name == "" or user_name == []:
+            f_user_name = '"No_posts_1"'
+        elif type(user_name) == str:
             f_user_name = f'"{user_name}"'
         elif type(user_name) == list:
             f_user_name = '"'
@@ -104,7 +121,9 @@ class Connection():
         else:
             f_user_name = '"None"'
 
-        if type(id) == str:
+        if id == "" or id == []:
+            f_id = '"0"'
+        elif type(id) == str:
             id = f'"{user_name}"'
         elif type(id) == list:
             f_id = '"'
@@ -121,25 +140,37 @@ class Connection():
         print(num)
         self.send('{"type": "RESPONSE", "response": "OK"}')
         if not num == 0: 
-            for _ in range(num):
-                posts.append(json.loads(self.recv()))
-                self.send('{"type": "RESPONSE", "response": "OK"}')
-            response = self.recv()
-            if not response == "OK":
-                if response == "WRONG CHARS":
-                    raise WrongCaracters(user_name=user_name)
+            with open("user_keys.json", "r") as f:
+                keys = json.loads(f.read())
+                for _ in range(num):
+                    post = json.loads(self.recv())
+                    print(post)
+                    try:
+                        print(post)
+                        post["content"] = auth.decrypt(post["content"], keys[post["user_id"]].encode("utf-8"))
+                    except (KeyError, binascii.Error, ValueError):
+                        pass
+                    posts.append(post)
+                    self.send('{"type": "RESPONSE", "response": "OK"}')
+                response = self.recv()
+                if not response == "OK":
+                    if response == "WRONG CHARS":
+                        raise WrongCaracters(user_name=user_name)
 
             return posts
         response = self.recv()
         if not response == "OK":
             if response == "WRONG CHARS":
+                print(user_name)
                 raise WrongCaracters(user_name=user_name)
         return {}
 
     def get_user(self, user_name:str):
         msg = "{"+f'"type": "ACTION", "action": "GET USER", "user_name": "{user_name}"'+"}"
+        print(msg)
         self.send(msg)
         response = self.recv()
+
         try:
             return json.loads(response)
         except json.decoder.JSONDecodeError:
@@ -171,7 +202,7 @@ class Connection():
         send_msg = "{"+f'"type": "NUM", "num": {num}, "id": "{msg_id}"'+"}"
         temp = self.connection.send(send_msg.encode("utf-8"))
 
-        temp = json.loads(self.connection.recv(1024).decode("utf-8"))
+        temp = json.loads(self.recv_from_queue())
         temp = temp["response"]
         if not temp == "OK":
             print("S1" + str(temp))
@@ -180,24 +211,44 @@ class Connection():
             msg_part = msg[512*i:512*i+512].replace("\"", '\\"')
             send_msg = "{"+f'"type": "MSG PART", "id": "{msg_id}", "content": "{msg_part}"'+"}"
             self.connection.send(send_msg.encode("utf-8"))
-            temp = json.loads(self.connection.recv(1024).decode("utf-8"))
+            print(temp)
+            temp = self.recv_from_queue()
+            print("kek", temp)
+            temp = json.loads(temp)
             temp = temp["response"]
             if not temp == "OK":
                 print("S2" + str(temp))
 
 
     def recv(self):
-        data = json.loads(self.connection.recv(1024).decode("utf-8"))
+        data = json.loads(self.recv_from_queue())
         num = data["num"]
         msg_id = data["id"]
         response = "{"+f'"type": "CONN RESPONSE", "response": "OK", "id": "{msg_id}"'+"}"
         self.connection.send(response.encode("utf-8"))
         msg = ""
         for i in range(num):
-            msg += json.loads(self.connection.recv(1024).decode("utf-8"))["content"]
+            msg += json.loads(self.recv_from_queue())["content"]
             self.connection.send(response.encode("utf-8"))
 
         return msg
+
+    def recv_queue(self):
+        while True:
+            temp = self.connection.recv(1024).decode("utf-8")
+            temp = "}\0{".join(temp.split("}{")).split("\0")
+
+            for msg in temp:
+                self.response_queue.append(msg)
+
+    def recv_from_queue(self):
+        while True:
+            if not len(self.response_queue) == 0:
+                temp = self.response_queue[0]
+                self.response_queue.pop(0)
+                return temp
+
+
 
 
 
@@ -206,13 +257,15 @@ def check_chars(*args):
 
     arguments = ""
     for argument in args:
-        arguments += argument
+        arguments += str(argument)
 
 
     for i, char in enumerate(invalid_chars):
         if char in arguments:
             return False, char
     return True, None
+
+
 
 
 class UserAlreadyExists(Exception):

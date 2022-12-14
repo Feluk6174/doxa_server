@@ -18,8 +18,23 @@ def import_db(connection:NodeConnection):
     db.import_db(commands)
 
 def export_db(connection:NodeConnection):
-    with open("sql.txt", "r") as f:
-        text = f.read()
+    global db
+
+    text = ""
+
+    users = db.querry("SELECT * FROM users;")
+    posts = db.querry("SELECT * FROM posts;")
+    ips = db.querry("SELECT * FROM ips;")
+
+    for user in users:
+        text += f"INSERT INTO users(user_name, public_key, key_file, time_created, profile_picture, info) VALUES('{user[0]}', '{user[1]}', '{user[2]}', {user[3]}, '{user[4]}', '{user[5]}');\n"
+    
+    for post in posts:
+        text += f"INSERT INTO posts(id, user_id, post, background_color, time_posted, signature) VALUES('{post[0]}', '{post[1]}', '{post[2]}', '{post[3]}', {post[4]}, '{post[5]}');\n"
+
+    for ip in ips:
+        text += f"INSERT INTO ips(ip, time_connected) VALUES('{ip[0]}', {ip[1]});\n"
+
     text = text.replace("\n", "\u259e").replace("\'", "\u259f")
     connection.send("{"+f'"type":"RESPONSE", "response":"{text}"'+"}")
     
