@@ -131,7 +131,33 @@ class Database():
                         log("[ERROR]", e, logger = self.logger)
                         self.connect()
                         self.return_response.append((self.queue[0][2], "ERROR"))
-                
+                    try:
+                        cursor = self.connection.cursor()
+                        for command in self.queue[0][1]: 
+                            try: 
+                                cursor.execute(command)
+                            except mysql.connector.Error as e:
+                                pass
+                        self.connection.commit()
+                        self.return_response.append((self.queue[0][2], "SUCCESS"))
+                    except mysql.connector.Error as e:
+                        try:
+                            self.connect()
+                            cursor = self.connection.cursor()
+                            for command in self.queue[0][1]: 
+                                try: 
+                                    cursor.execute(command)
+                                except mysql.connector.Error as e:
+                                    pass
+                            self.connection.commit()
+                            self.return_response.append((self.queue[0][2], "SUCCESS"))
+                        except mysql.connector.Error as e:
+                            log("[ERROR]", e, logger = self.logger)
+                            self.connect()
+                            self.return_response.append((self.queue[0][2], "ERROR"))
+                        
+
+
                 elif self.queue[0][0] == "s":
                     self.queue.pop(0)
                     break
