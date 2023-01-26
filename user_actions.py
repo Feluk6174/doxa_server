@@ -239,7 +239,10 @@ def get_posts(msg_info:dict, connection:ClientConnection):
         elif msg_info["sort_order"] == "desc" or msg_info["sort_order"] == 1:
             sql += " DESC"
 
-    sql += f" LIMIT {msg_info['offset']}, {msg_info['num']}"
+    try:
+        sql += f" LIMIT {msg_info['offset']}, {msg_info['num']}"
+    except KeyError:
+        sql += f" LIMIT {msg_info['num']}"
 
     sql += ";"
 
