@@ -133,3 +133,6 @@ rsa_key.bin
 client_test_*
 *.swp
 
+advanced_settings.json
+user_keys.json
+sql.txt

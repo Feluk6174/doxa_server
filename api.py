@@ -9,15 +9,17 @@ import random
 import threading
 
 
+print("api", __name__)
+
 class Connection():
     def __init__(self):
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connection.connect(("195.181.244.246", random.randint(30002, 30002)))
+        self.connection.connect(("195.181.244.246",  30002))
 
         msg = '{"type": "CLIENT"}'
         self.connection.send(msg.encode("utf-8"))
         if self.connection.recv(1024).decode("utf-8") == "OK":
-            print("[ESTABLISHED CONNECTION]")
+            print("[ESTABLISHED CONNECTION]", __name__)
 
         self.response_queue = []
 
@@ -47,7 +49,7 @@ class Connection():
         if advanced_options["encryption"]:
             if len(content) > 159:
                 content = content[:159:]
-            content = auth.encrypt(content)
+            content = "[e] " + auth.encrypt(content)
 
         time_posted = int(time.time())
         signature = auth.sign(priv_key, content, post_id, user_name, background_color, time_posted).decode("utf-8")
@@ -106,7 +108,7 @@ class Connection():
                 if response == "WRONG CHARS":
                     raise WrongCaracters(user_name=user_name)
 
-    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = "10", id:Union[str, list] = None):
+    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = 10, offset:int = 0, id:Union[str, list] = None):
         #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'background_color': 'str(10)', 'time_posted': int}
         posts = []
         if user_name == "" or user_name == []:
@@ -133,7 +135,7 @@ class Connection():
         else:
             f_id = '"None"'
 
-        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}", "id": {f_id}'+"}"
+        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}", "offset": "{offset}", "id": {f_id}'+"}"
         print(msg)
         self.send(msg)
         num = int(self.recv())
@@ -147,9 +149,13 @@ class Connection():
                     print(post)
                     try:
                         print(post)
-                        post["content"] = auth.decrypt(post["content"], keys[post["user_id"]].encode("utf-8"))
+                        if post["content"][:3:] == "[e]":
+                            post["content"] = auth.decrypt(post["content"][4::], keys[post["user_id"]].encode("utf-8"))
+                        else:
+                            post["content"] = auth.decrypt(post["content"], keys[post["user_id"]].encode("utf-8"))
                     except (KeyError, binascii.Error, ValueError):
-                        pass
+                        if post["content"][:3:] == "[e]":
+                            post["content"] = "[ENCRYPTED]"
                     posts.append(post)
                     self.send('{"type": "RESPONSE", "response": "OK"}')
                 response = self.recv()
@@ -234,12 +240,20 @@ class Connection():
         return msg
 
     def recv_queue(self):
-        while True:
+        self.run = True
+        while self.run:
+            print(random.randint(1, 10000))
             temp = self.connection.recv(1024).decode("utf-8")
             temp = "}\0{".join(temp.split("}{")).split("\0")
 
+            if "stop" in temp:
+                break
+
             for msg in temp:
                 self.response_queue.append(msg)
+        else:
+            print(1)
+        print("closed thread")
 
     def recv_from_queue(self):
         while True:

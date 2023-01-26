@@ -2,7 +2,7 @@
     "database": {
         "host": "localhost",
         "user": "doxa",
-        "password": "[Your password to the user]",
+        "password": "[password]",
         "database": "doxa"
     },
     "api": {
