@@ -7,4 +7,4 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-ENTRYPOINT ["python", "main.py", "30003", "-v"]
+CMD ["python", "main.py", "30003", "-v"]

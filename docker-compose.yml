@@ -8,17 +8,16 @@ services:
       - "./:/app"
     ports:
       - "30003:30003"
+    env_file:
+      - .env
 
   db:
     container_name: db
     image: mariadb:10.9.5-jammy
     volumes:
       - db_data:/var/lib/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-      - MYSQL_DATABASE=${MYSQL_DATABASE}
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    env_file:
+      - .env
     ports:
       - "3306:3306"
 
