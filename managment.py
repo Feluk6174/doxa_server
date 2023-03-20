@@ -107,7 +107,7 @@ def connect_to_new_node():
         return
     for i in range(10):
         ip = db.querry("SELECT ip FROM ips ORDER BY RAND() LIMIT 1;")
-        if not check_if_connected(ip[0][0]):
+        if ip and not check_if_connected(ip[0][0]):
             host, port = ip[0][0].split(":")
     
             connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
