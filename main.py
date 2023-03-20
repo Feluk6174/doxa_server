@@ -42,6 +42,8 @@ def main():
     user_actions.init(logger, db)
     conn.init(logger, clients, connections, db)
 
+    db.create()
+
     logger.log(f"========[SERVER RUNNING ON {IP}]========")
     thread = threading.Thread(target=managment.clock)
     thread.start()

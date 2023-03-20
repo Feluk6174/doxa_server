@@ -28,6 +28,7 @@ def is_safe(*args, logger = None):
 
 class Database():
     def __init__(self, logger:log_lib.Logger=None):
+        time.sleep(5)
         self.connect()
         self.queue = []
         self.return_response = []
@@ -160,8 +161,10 @@ class Database():
 
         cursor.execute("DROP TABLE IF EXISTS posts;")
         cursor.execute("DROP TABLE IF EXISTS users;")
+        cursor.execute("DROP TABLE IF EXISTS grups;")
 
-        cursor.execute("CREATE TABLE users(user_name VARCHAR(16) COLLATE ascii_general_ci NOT NULL UNIQUE PRIMARY KEY, public_key VARCHAR(392) COLLATE ascii_general_ci NOT NULL UNIQUE, key_file VARCHAR(1764) COLLATE ascii_general_ci NOT NULL UNIQUE, time_created INT NOT NULL, profile_picture VARCHAR(64) COLLATE ascii_general_ci NOT NULL, info VARCHAR(200));")
+        cursor.execute("CREATE TABLE grups(id INT NOT NULL PRIMARY KEY, pos JSON NOT NULL);")
+        cursor.execute("CREATE TABLE users(user_name VARCHAR(16) COLLATE ascii_general_ci NOT NULL UNIQUE PRIMARY KEY, public_key VARCHAR(392) COLLATE ascii_general_ci NOT NULL UNIQUE, key_file VARCHAR(1764) COLLATE ascii_general_ci NOT NULL UNIQUE, time_created INT NOT NULL, profile_picture VARCHAR(64) COLLATE ascii_general_ci NOT NULL, info VARCHAR(200), grup INT NOT NULL, pos JSON, FOREIGN KEY (grup) REFERENCES grups (id) ON UPDATE CASCADE);")
         cursor.execute("CREATE TABLE posts(id VARCHAR(23) NOT NULL PRIMARY KEY, user_id VARCHAR(16) COLLATE ascii_general_ci NOT NULL, post VARCHAR(255) NOT NULL, background_color VARCHAR(1) NOT NULL, time_posted INT NOT NULL, signature VARCHAR(344), FOREIGN KEY (user_id) REFERENCES users (user_name));")
     
         cursor.execute("DROP TABLE IF EXISTS ips;")
