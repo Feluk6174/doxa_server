@@ -154,19 +154,20 @@ class Database():
                 self.queue.pop(0)
             time.sleep(0.1)
 
-
-    def create(self):
+    def __drop(self):
         cursor = self.connection.cursor()
 
         cursor.execute("DROP TABLE IF EXISTS posts;")
         cursor.execute("DROP TABLE IF EXISTS users;")
-
-        cursor.execute("CREATE TABLE users(user_name VARCHAR(16) COLLATE ascii_general_ci NOT NULL UNIQUE PRIMARY KEY, public_key VARCHAR(392) COLLATE ascii_general_ci NOT NULL UNIQUE, key_file VARCHAR(1764) COLLATE ascii_general_ci NOT NULL UNIQUE, time_created INT NOT NULL, profile_picture VARCHAR(64) COLLATE ascii_general_ci NOT NULL, info VARCHAR(200));")
-        cursor.execute("CREATE TABLE posts(id VARCHAR(23) NOT NULL PRIMARY KEY, user_id VARCHAR(16) COLLATE ascii_general_ci NOT NULL, post VARCHAR(255) NOT NULL, background_color VARCHAR(1) NOT NULL, time_posted INT NOT NULL, signature VARCHAR(344), FOREIGN KEY (user_id) REFERENCES users (user_name));")
-    
         cursor.execute("DROP TABLE IF EXISTS ips;")
 
-        cursor.execute("CREATE TABLE ips(ip VARCHAR(21) NOT NULL PRIMARY KEY, time_connected INT NOT NULL);")
+    def create(self):
+        cursor = self.connection.cursor()
+
+        cursor.execute("CREATE TABLE IF NOT EXISTS users(user_name VARCHAR(16) COLLATE ascii_general_ci NOT NULL UNIQUE PRIMARY KEY, public_key VARCHAR(392) COLLATE ascii_general_ci NOT NULL UNIQUE, key_file VARCHAR(1764) COLLATE ascii_general_ci NOT NULL UNIQUE, time_created INT NOT NULL, profile_picture VARCHAR(64) COLLATE ascii_general_ci NOT NULL, info VARCHAR(200));")
+        cursor.execute("CREATE TABLE IF NOT EXISTS posts(id VARCHAR(23) NOT NULL PRIMARY KEY, user_id VARCHAR(16) COLLATE ascii_general_ci NOT NULL, post VARCHAR(255) NOT NULL, background_color VARCHAR(1) NOT NULL, time_posted INT NOT NULL, signature VARCHAR(344), FOREIGN KEY (user_id) REFERENCES users (user_name));")
+
+        cursor.execute("CREATE TABLE IF NOT EXISTS ips(ip VARCHAR(21) NOT NULL PRIMARY KEY, time_connected INT NOT NULL);")
 
         self.connection.commit()
 
