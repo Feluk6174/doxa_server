@@ -13,11 +13,11 @@ def log(*message, logger:log_lib.Logger = None):
         print(message)
 
 def is_safe(*args, logger = None):
-    invalid_chars = ["\\", "\'", "\"", "\n", "\t", "\r", "\0", "%", "\b", ";", "=", "\u259e"]
+    invalid_chars = ["\\", "\'", "\n", "\t", "\r", "\0", "%", "\b", ";", "=", "\u259e"]
 
     arguments = ""
     for argument in args:
-        arguments += argument if not argument == None else ""
+        arguments += str(argument) if not argument == None else ""
 
     for char in invalid_chars:
         if char in arguments:
@@ -173,7 +173,7 @@ class Database():
 
         self.connection.commit()
 
-if __name__ == "__main__":
+"""if __name__ == "__main__":
     db = Database()
     db.create()
-    db.stop()
+    db.stop()"""

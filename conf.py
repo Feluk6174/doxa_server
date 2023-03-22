@@ -26,6 +26,7 @@ def read_config_from_env():
 def init():
     global conf
     conf = read_config_from_env()
+    #conf = read_config_from_file()
 
 def api(parameter):
     global conf

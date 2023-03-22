@@ -6,6 +6,7 @@ import math
 
 import log
 import database
+import recomendation
 from conn import NodeConnection, ClientConnection
 from typing import Union
 
@@ -151,6 +152,7 @@ def clock():
         for ip in res:
             logger.log(f"    {ip[0]}")
         broadcast_ip(IP, IP)
+        recomendation.calc_clusters(db)
         time.sleep(clock_time)
 
 def main():
