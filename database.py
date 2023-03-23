@@ -4,7 +4,10 @@ import threading
 import time
 import log as log_lib
 import conf
+import json
 
+#TODO:
+#Executemany
 
 def log(*message, logger:log_lib.Logger = None):
     if not logger == None:
@@ -48,6 +51,15 @@ class Database():
     def stop(self):
         queue_id = random.randint(1000000000, 9999999999)
         self.queue.append(("s", "stop", queue_id))
+
+    def get_users_with_pos(self):
+        users = self.querry("SELECT user_name, grup, pos FROM users;")
+        users = [[user[0], user[1], json.loads(user[2])["pos"]] for user in users]
+        return users
+
+    def update_users_pos(self, users:list[list]):
+        for user in users:
+            self.execute(f"UPDATE users SET grup = {user[1]} WHERE user_name = '{user[0]}';")
 
     def querry(self, querry:str):
         queue_id = random.randint(1000000000, 9999999999)

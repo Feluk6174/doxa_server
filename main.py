@@ -5,6 +5,7 @@ import log
 import managment
 import user_actions
 import conn
+import conf
 
 
 def main():
@@ -41,6 +42,7 @@ def main():
     managment.init(logger, clients, connections, db, HOST, IP, PORT, server)
     user_actions.init(logger, db)
     conn.init(logger, clients, connections, db)
+    conf.init()
 
     db.create()
 

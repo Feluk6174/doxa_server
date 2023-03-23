@@ -41,4 +41,3 @@ class EmptyConf(Exception):
         super().__init__("Configuration file is empty")
 
 conf = ""
-init()
