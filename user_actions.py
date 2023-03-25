@@ -1,6 +1,7 @@
 from Crypto.PublicKey import RSA
 from typing import Union
 import random
+import json
 
 import auth
 import database
@@ -56,7 +57,7 @@ def register_user(msg_info:dict, connection:Union[ClientConnection, NodeConnecti
 
     logger.log("res", res, len(res))
     if len(res) == 0:
-        sql = f"INSERT INTO users(user_name, public_key, key_file, time_created, profile_picture, info, grup, pos) VALUES('{msg_info['user_name']}', '{msg_info['public_key']}', '{msg_info['private_key']}', {int(time.time())}, '{msg_info['profile_picture']}', '{msg_info['info']}', {msg_info['grup']}, '{msg_info['pos']}');"
+        sql = f"INSERT INTO users(user_name, public_key, key_file, time_created, profile_picture, info, grup, pos) VALUES('{msg_info['user_name']}', '{msg_info['public_key']}', '{msg_info['private_key']}', {int(time.time())}, '{msg_info['profile_picture']}', '{msg_info['info']}', {msg_info['grup']}, '{json.dumps(msg_info['pos'])}');"
         logger.log("r"+sql)
         err = db.execute(sql)
         if not err == "ERROR":
@@ -128,7 +129,7 @@ def change_info(msg_info:dict, connection:Union[ClientConnection, NodeConnection
 def update_pos(msg_info:dict, connection:Union[ClientConnection, NodeConnection], ip:str=None):
     global db, logger
     logger.log(f"changing info: {msg_info} {ip}")
-    if not database.is_safe(msg_info["pos"], msg_info["user_name"]):
+    if not database.is_safe(msg_info["pos"], msg_info["user_name"], logger=logger):
         connection.send("WRONG CHARS")
         return
 

@@ -34,6 +34,7 @@ def api(parameter):
 
 def database(parameter):
     global conf
+    print(conf, conf["database"])
     return conf["database"][parameter]
 
 class EmptyConf(Exception):

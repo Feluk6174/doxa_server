@@ -45,7 +45,7 @@ class Connection():
             if response == "ALREADY EXISTS":
                 raise UserAlreadyExists(user_name)
             elif response == "WRONG CHARS":
-                raise WrongCaracters(user_name=user_name, public_key=public_key, profile_picture=profile_picture, info=info, pos=pos)
+                raise WrongCaracters(user_name=user_name, public_key=public_key, profile_picture=profile_picture, info=info, pos=pos, msg=msg)
             elif response == "DATABASE ERROR":
                 raise DatabaseError(msg)
 
@@ -285,7 +285,7 @@ class Connection():
 
 
 def check_chars(*args):
-    invalid_chars = ["\\", "\'", "\n", "\t", "\r", "\0", "%", "\b", ";", "=", "\u259e"]
+    invalid_chars = ["\\", "\'", "\n", "\t", "\r", "\0", "%", "\b", ";", "\u259e"]
 
     arguments = ""
     for argument in args:

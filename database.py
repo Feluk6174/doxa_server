@@ -16,15 +16,17 @@ def log(*message, logger:log_lib.Logger = None):
         print(message)
 
 def is_safe(*args, logger = None):
-    invalid_chars = ["\\", "\'", "\n", "\t", "\r", "\0", "%", "\b", ";", "=", "\u259e"]
+    invalid_chars = ["\\", "\n", "\t", "\r", "\0", "%", "\b", ";", "\u259e"]
 
     arguments = ""
     for argument in args:
         arguments += str(argument) if not argument == None else ""
 
-    for char in invalid_chars:
+
+    log("arguments", arguments, logger=logger)
+    for i, char in enumerate(invalid_chars):
         if char in arguments:
-            log(f"[ERROR] Invalid char {char}", logger)
+            log(f"[ERROR] Invalid char {char} [{i}]", logger=logger)
             return False
     return True
 
@@ -41,6 +43,7 @@ class Database():
         thread.start()
 
     def connect(self):
+        conf.init()
         self.connection = mysql.connector.connect(
             host = conf.database("host"), 
             user = conf.database("user"), 
