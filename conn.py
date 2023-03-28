@@ -361,16 +361,14 @@ def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:d
     # db(database.Database)
     global logger, clients, connections, db
 
-    logger.stop()
     logger = get_logger
     clients = get_clients
     connections = get_connections
-    db.stop()
     db = get_db
 
-logger = log.Logger(None)
+logger = log.Logger(None, real=False)
 clients = []
 connections = []
-db = database.Database()
+db = database.Database(real=False)
 
 import user_actions

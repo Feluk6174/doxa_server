@@ -2,7 +2,9 @@ import time
 import threading
 
 class Logger():
-    def __init__(self, log_file:str, vervose:str = False):
+    def __init__(self, log_file:str, vervose:str = False, real = True):
+        if not real:
+            return
         self.log_file_name = str(log_file)+str(int(time.time()))+".log"
         self.queue = []
         self.vervose = vervose

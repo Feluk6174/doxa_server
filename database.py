@@ -32,7 +32,9 @@ def is_safe(*args, logger = None):
 
 
 class Database():
-    def __init__(self, logger:log_lib.Logger=None):
+    def __init__(self, logger:log_lib.Logger=None, real=True):
+        if not real:
+            return
         time.sleep(5)
         self.connect()
         self.queue = []

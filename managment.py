@@ -182,11 +182,9 @@ def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:d
     # sets global variables
     global logger, clients, connections, db, HOST, IP, PORT, get_suposed_connected, server_info, max_clients, server
 
-    logger.stop()
     logger = get_logger
     clients = get_clients
     connections = get_connections
-    db.stop()
     db = get_db
     HOST = get_HOST
     IP = get_IP
@@ -201,10 +199,10 @@ def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:d
     max_clients = 10
 
 
-logger = log.Logger(None)
+logger = log.Logger(None, real=False)
 clients = []
 connections = []
-db = database.Database()
+db = database.Database(real=False)
 HOST = ""
 IP = ""
 PORT = ""

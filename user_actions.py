@@ -393,12 +393,10 @@ def init(get_logger:log.Logger, get_db:database.Database):
     # sets global variables
     global logger, db
 
-    logger.stop()
     logger = get_logger
-    db.stop()
     db = get_db
 
-logger = log.Logger(None)
-db = database.Database()
+logger = log.Logger(None, real=False)
+db = database.Database(real=False)
 
 from conn import NodeConnection, ClientConnection
