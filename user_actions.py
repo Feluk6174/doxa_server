@@ -140,7 +140,7 @@ def update_pos(msg_info:dict, connection:Union[ClientConnection, NodeConnection]
         connection.send("WRONG SIGNATURE")
         return
     
-    res = db.querry(f"SELECT * FROM users WHERE user_name = '{msg_info['user_name']}' AND info = '{msg_info['info']}';")
+    res = db.querry(f"SELECT * FROM users WHERE user_name = '{msg_info['user_name']}' AND pos = '{msg_info['pos']}';")
     if len(res) == 0:
         sql = f"UPDATE users SET pos = '{msg_info['pos']}' WHERE user_name = '{msg_info['user_name']}';"
         err = db.execute(sql)
@@ -326,10 +326,53 @@ def get_user_info(msg_info:dict, connection:ClientConnection):
     logger.log(user_info)
     if not len(user_info) == 0 and not user_info == "ERROR":
         user_info = user_info[0]
-        msg = "{"+f'"user_name": "{user_info[0]}", "public_key": "{user_info[1]}", "private_key": "{user_info[2]}",  "time_created": {user_info[3]}, "profile_picture": "{user_info[4]}", "info": "{user_info[5]}"'+"}"
+        msg = "{"+f'"user_name": "{user_info[0]}", "public_key": "{user_info[1]}", "private_key": "{user_info[2]}",  "time_created": {user_info[3]}, "profile_picture": "{user_info[4]}", "info": "{user_info[5]}", "grup": {user_info[6]}, "pos": '+"{}}"
+        msg = json.loads(msg)
+        msg["pos"] = json.loads(user_info[7])
+        msg = json.dumps(msg)
     else:
         msg = "{}"
     connection.send(msg)
+
+
+def get_users_info(msg_info:dict, connection:ClientConnection):
+    global db, logger
+    if not database.is_safe(msg_info["user_names"]):
+        connection.send("WRONG CHARS")
+        return
+    # (user_name, public_key, key_file, time_created, profile_picture, info)
+    sql = "SELECT * FROM users "
+    first = True
+    for user in msg_info["user_names"].split(","):
+        if first:
+            first = False
+            sql += " WHERE"
+        else:
+            sql += " OR"
+        sql += f" user_name = '{user}'"
+
+    sql += ";"
+    users = db.querry(sql)
+
+    connection.send(str(len(users)))
+
+    res = connection.recv_from_queue()
+    logger.log("res1", res)
+    if not res == "OK":
+        logger.log(res)
+
+    for i, user_info in enumerate(users):
+        logger.log(users)
+        msg = "{"+f'"user_name": "{user_info[0]}", "public_key": "{user_info[1]}", "private_key": "{user_info[2]}",  "time_created": {user_info[3]}, "profile_picture": "{user_info[4]}", "info": "{user_info[5]}", "grup": {user_info[6]}, "pos": '+"{}}"
+        msg = json.loads(msg)
+        msg["pos"] = json.loads(user_info[7])
+        msg = json.dumps(msg)
+        connection.send(msg)
+        res = connection.recv_from_queue()
+        if not res == "OK":
+            logger.log(res)
+
+    
 
 def get_post(msg_info:dict, connection:ClientConnection):
     global db, logger

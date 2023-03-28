@@ -117,6 +117,9 @@ class ClientConnection():
                 elif msg_info["action"] == "GET USER":
                     user_actions.get_user_info(msg_info, self)
 
+                elif msg_info["action"] == "GET USERS":
+                    user_actions.get_users_info(msg_info, self)
+
                 elif msg_info["action"] == "GET POST":
                     user_actions.get_post(msg_info, self)
                 
@@ -125,6 +128,9 @@ class ClientConnection():
 
                 elif msg_info["action"] == "UPDATE INFO":
                     user_actions.change_info(msg_info, self)
+
+                elif msg_info["action"] == "UPDATE POS":
+                    user_actions.update_pos(msg_info, self)
 
                 elif msg_info["action"] == "SEND":
                     self.send(msg_info["msg"])
@@ -282,6 +288,9 @@ class NodeConnection():
 
                 elif msg_info["action"] == "UPDATE INFO":
                     user_actions.change_info(msg_info, self, ip=self.ip)
+
+                elif msg_info["action"] == "UPDATE POS":
+                    user_actions.update_pos(msg_info, self, ip=self.ip)
 
                 elif msg_info["action"] == "EXPORT":
                     managment.export_db(self)
