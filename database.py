@@ -170,7 +170,7 @@ class Database():
                 self.queue.pop(0)
             time.sleep(0.1)
 
-    def __drop(self):
+    def drop(self):
         cursor = self.connection.cursor()
 
         cursor.execute("DROP TABLE IF EXISTS posts;")
