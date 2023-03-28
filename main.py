@@ -39,8 +39,6 @@ def main():
 
     db = database.Database(logger = logger)
 
-    db.create()
-
     managment.init(logger, clients, connections, db, HOST, IP, PORT, server)
     user_actions.init(logger, db)
     conn.init(logger, clients, connections, db)
