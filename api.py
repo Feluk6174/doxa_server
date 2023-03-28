@@ -32,14 +32,20 @@ class Connection():
         with open(key_path, "r") as f:
             keys_file = f.read()
         private_key = auth.sanitize_key(keys_file)
-        msg = "{"+f'"type": "ACTION", "action": "REGISTER", "user_name": "{user_name}", "public_key": "{public_key}", "private_key": "{private_key}", "profile_picture": "{profile_picture}", "info": "{info}", "time": {time_registered}'+"}"
+        pos = [float(random.randint(0,100)) for _ in range(2)]
+        print(pos)
+        grup = 0
+        msg = json.loads("{"+f'"type": "ACTION", "action": "REGISTER", "user_name": "{user_name}", "public_key": "{public_key}", "private_key": "{private_key}", "profile_picture": "{profile_picture}", "info": "{info}", "time": {time_registered}, "grup": {grup}, "pos": '+"{}}")
+        msg["pos"] = {"pos": pos}
+        msg = json.dumps(msg)
+        print("msg1:", msg)
         temp = self.send(msg)
         response = self.recv()
         if not response == "OK":
             if response == "ALREADY EXISTS":
                 raise UserAlreadyExists(user_name)
             elif response == "WRONG CHARS":
-                raise WrongCaracters(user_name=user_name, public_key=public_key, profile_picture=profile_picture, info=info)
+                raise WrongCaracters(user_name=user_name, public_key=public_key, profile_picture=profile_picture, info=info, pos=pos, msg=msg)
             elif response == "DATABASE ERROR":
                 raise DatabaseError(msg)
 
@@ -92,6 +98,25 @@ class Connection():
             elif response == "DATABASE ERROR":
                 raise DatabaseError(msg)
 
+    def update_pos(self, user_name:str, pos:list[float], priv_key):
+        pos = {"pos": pos}
+        time_posted = int(time.time())
+        signature = auth.sign(priv_key, user_name, pos, time_posted).decode("utf-8")
+        msg = "{"+f'"type": "ACTION", "action": "UPDATE POS", "user_name": "{user_name}", "pos": '+'{}'+f', "time": {time_posted}, "signature": "{signature}"'+"}"
+        msg = json.loads(msg)
+        msg["pos"] = pos
+        msg = json.dumps(msg)
+        print("msg2:", msg)
+        self.send(msg)
+        response = self.recv()
+        if not response == "OK":
+            if response == "WRONG CHARS":
+                raise WrongCaracters(user_name=user_name, pos=pos)
+            elif response == "WRONG SIGNATURE":
+                raise WrongSignature()
+            elif response == "DATABASE ERROR":
+                raise DatabaseError(msg)
+
     def get_user_posts(self, user_name:str):
         #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'background_color': 'str(10)', 'time_posted': int}
         posts = []
@@ -108,7 +133,7 @@ class Connection():
                 if response == "WRONG CHARS":
                     raise WrongCaracters(user_name=user_name)
 
-    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = 10, offset:int = 0, id:Union[str, list] = None):
+    def get_posts(self, sort_by:str = None, sort_order:str = None, user_name:Union[str, list[str]] = None, hashtag:str = None, exclude_background_color:str = None, include_background_color:str = None, num:int = 10, offset:int = 0, id:Union[str, list[str]] = None, grup:int = '"None"'):
         #return format: {'id': 'str(23)', 'user_id': 'str(16)', 'content': 'str(255)', 'background_color': 'str(10)', 'time_posted': int}
         posts = []
         if user_name == "" or user_name == []:
@@ -126,7 +151,7 @@ class Connection():
         if id == "" or id == []:
             f_id = '"0"'
         elif type(id) == str:
-            id = f'"{user_name}"'
+            f_id = f'"{id}"'
         elif type(id) == list:
             f_id = '"'
             for i in id:
@@ -135,7 +160,7 @@ class Connection():
         else:
             f_id = '"None"'
 
-        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}", "offset": "{offset}", "id": {f_id}'+"}"
+        msg = "{"+f'"type": "ACTION", "action": "GET POSTS", "user_name": {f_user_name}, "hashtag": "{hashtag}", "include_background_color": "{include_background_color}", "exclude_background_color":"{exclude_background_color}", "sort_by": "{sort_by}", "sort_order": "{sort_order}", "num": "{num}", "offset": "{offset}", "id": {f_id}, "grup": {grup}'+"}"
         print(msg)
         self.send(msg)
         num = int(self.recv())
@@ -146,9 +171,7 @@ class Connection():
                 keys = json.loads(f.read())
                 for _ in range(num):
                     post = json.loads(self.recv())
-                    print(post)
                     try:
-                        print(post)
                         if post["content"][:3:] == "[e]":
                             post["content"] = auth.decrypt(post["content"][4::], keys[post["user_id"]].encode("utf-8"))
                         else:
@@ -169,8 +192,8 @@ class Connection():
             if response == "WRONG CHARS":
                 print(user_name)
                 raise WrongCaracters(user_name=user_name)
-        return {}
-
+        return [{}]
+        
     def get_user(self, user_name:str):
         msg = "{"+f'"type": "ACTION", "action": "GET USER", "user_name": "{user_name}"'+"}"
         print(msg)
@@ -179,10 +202,32 @@ class Connection():
 
         try:
             return json.loads(response)
-        except json.decoder.JSONDecodeError:
+        except json.decoder.JSONDecodeError as e:
+            print(e)
             if response == "WRONG CHARS":
                 raise WrongCaracters(user_name=user_name)
             return {}
+
+    def get_users(self, user_names:list[str]):
+        users = ",".join(user_names)
+        msg = "{"+f'"type": "ACTION", "action": "GET USERS", "user_names": "{users}"'+"}"
+        print(msg)
+        self.send(msg)
+        num = int(self.recv())
+        self.send('{"type": "RESPONSE", "response": "OK"}')
+        posts = []
+        if not num == 0:
+            for _ in range(num):
+                post = json.loads(self.recv())
+                posts.append(post)
+                self.send('{"type": "RESPONSE", "response": "OK"}')
+            return posts
+        response = self.recv()
+        if not response == "OK":
+            if response == "WRONG CHARS":
+                print(user_names)
+                raise WrongCaracters(user_name=user_names)
+        return [{}]
 
     def close(self):
         self.connection.close()
@@ -217,9 +262,7 @@ class Connection():
             msg_part = msg[512*i:512*i+512].replace("\"", '\\"')
             send_msg = "{"+f'"type": "MSG PART", "id": "{msg_id}", "content": "{msg_part}"'+"}"
             self.connection.send(send_msg.encode("utf-8"))
-            print(temp)
             temp = self.recv_from_queue()
-            print("kek", temp)
             temp = json.loads(temp)
             temp = temp["response"]
             if not temp == "OK":
@@ -242,7 +285,6 @@ class Connection():
     def recv_queue(self):
         self.run = True
         while self.run:
-            print(random.randint(1, 10000))
             temp = self.connection.recv(1024).decode("utf-8")
             temp = "}\0{".join(temp.split("}{")).split("\0")
 
@@ -267,7 +309,7 @@ class Connection():
 
 
 def check_chars(*args):
-    invalid_chars = ["\\", "\'", "\"", "\n", "\t", "\r", "\0", "%", "\b", ";", "=", "\u259e"]
+    invalid_chars = ["\\", "\'", "\n", "\t", "\r", "\0", "%", "\b", ";", "\u259e"]
 
     arguments = ""
     for argument in args:
@@ -291,7 +333,7 @@ class WrongCaracters(Exception):
     def __init__(self, **kwargs):
         self.message = "wtf"
         for key, value in kwargs.items():
-            check, char = check_chars(value)
+            check, char = check_chars(str(value))
             if not check:
                 self.message = f"{key}(value = {value}) contains the character {char}"
                 

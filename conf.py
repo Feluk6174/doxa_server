@@ -26,6 +26,7 @@ def read_config_from_env():
 def init():
     global conf
     conf = read_config_from_env()
+    #conf = read_config_from_file()
 
 def api(parameter):
     global conf
@@ -33,6 +34,7 @@ def api(parameter):
 
 def database(parameter):
     global conf
+    print(conf, conf["database"])
     return conf["database"][parameter]
 
 class EmptyConf(Exception):
@@ -40,4 +42,3 @@ class EmptyConf(Exception):
         super().__init__("Configuration file is empty")
 
 conf = ""
-init()
