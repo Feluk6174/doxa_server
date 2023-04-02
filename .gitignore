@@ -136,3 +136,4 @@ client_test_*
 advanced_settings.json
 user_keys.json
 sql.txt
+db.sql
