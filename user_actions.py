@@ -274,7 +274,7 @@ def get_posts(msg_info:dict, connection:ClientConnection):
         else:
             sql += " AND"
 
-            sql += f" user_id IN (SELECT user_name FROM users WHERE grup = {msg_info['grup']})"
+        sql += f" user_id IN (SELECT user_name FROM users WHERE grup = {msg_info['grup']})"
 
     if not msg_info["sort_by"] == "None":
         sql += f" ORDER BY {msg_info['sort_by']}"
