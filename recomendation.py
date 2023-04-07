@@ -53,7 +53,7 @@ def calc_clusters(db:database.Database):
     positions = [user[2] for user in users]
     new_group  = cluster(positions)
     
-    create_groups(list(set(new_group)))
+    create_groups(list(set(new_group)), db)
 
     print(new_group)
 
