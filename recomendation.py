@@ -1,5 +1,6 @@
 import database
 import json
+import random
 
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from sklearn.datasets import make_blobs
@@ -14,6 +15,14 @@ def calc_dimentions(num_users:int) -> int:
 
 def num_clusters(db:database.Database):
     return len(db.querry("SELECT id FROM groups;"))
+
+def create_groups(nums:list[int], db:database.Database):
+    nums_db = db.querry("SELECT id FROM grups;")
+    if not len(nums) == len(nums_db):
+        for num in nums:
+            if not num in nums_db:
+                db.execute(f"INSERT INTO grups(id, pos) VALUES({num}, "+'{"pos": '+str([random.randint(0, 100), random.randint(0, 100)])+'}')
+
 
 def cluster(users:list[list[int]]) -> list[int]:
     bandwidth = estimate_bandwidth(users, quantile=0.4)
@@ -43,6 +52,8 @@ def calc_clusters(db:database.Database):
 
     positions = [user[2] for user in users]
     new_group  = cluster(positions)
+    
+    create_groups(list(set(new_group)))
 
     print(new_group)
 
