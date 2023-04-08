@@ -12,17 +12,46 @@ import threading
 print("api", __name__)
 
 class Connection():
-    def __init__(self, host: str, port: int):
-        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.connection.connect((host,  port))
-
-        msg = '{"type": "CLIENT"}'
-        self.connection.send(msg.encode("utf-8"))
-        if self.connection.recv(1024).decode("utf-8") == "OK":
-            print("[ESTABLISHED CONNECTION]", __name__)
-
+    def __init__(self, host: str=None, port: int=None):
         self.response_queue = []
-
+        msg = '{"type": "CLIENT"}'
+        self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if not host == None:
+            self.connection.connect((host,  port))
+            self.connection.send(msg.encode("utf-8"))
+            if self.connection.recv(1024).decode("utf-8") == "OK":
+                print("[ESTABLISHED CONNECTION]", __name__)
+            with open("ips.ips", "w") as f:
+                f.write(json.dumps({"ips": self.get_ips()}))
+        else:
+            connected = False
+            final_ips = {"ips": []}
+            with open("ips.ips", "r") as f:
+                ips = json.loads(f.read())["ips"]
+            for ip in ips:
+                try:
+                    ip = ip.split(":")
+                    host = ip[0]
+                    port = int(ip[1])
+                    self.connection.connect((host,  port))
+                    self.connection.send(msg.encode("utf-8"))
+                    if self.connection.recv(1024).decode("utf-8") == "OK":
+                        print("[ESTABLISHED CONNECTION]", __name__)
+                    final_ips["ips"].append(":".join(ip))
+                    connected = True
+                    break
+                except ConnectionRefusedError:
+                    pass
+            if not connected:
+                self.connection.connect(("34.175.220.44",  30003))
+                self.connection.send(msg.encode("utf-8"))
+                if self.connection.recv(1024).decode("utf-8") == "OK":
+                    print("[ESTABLISHED CONNECTION]", __name__)
+                final_ips["ips"].append("34.175.220.44:30003")
+            final_ips["ips"].extend(self.get_ips())
+            with open("ips.ips", "w") as f:
+                f.write(json.dumps({"ips": final_ips}))
+        
         thread = threading.Thread(target=self.recv_queue)
         thread.start()
 
@@ -241,7 +270,7 @@ class Connection():
             print(e)
             if response == "WRONG CHARS":
                 raise WrongCaracters(msg=msg)
-            return {}
+            return []
 
     def close(self):
         self.connection.close()
