@@ -229,6 +229,20 @@ class Connection():
                 raise WrongCaracters(user_name=user_names)
         return [{}]
 
+    def get_ips(self):
+        msg = '{"type": "ACTION", "action": "GET IPS"}'
+        print(msg)
+        self.send(msg)
+        response = self.recv()
+
+        try:
+            return json.loads(response)["ips"]
+        except json.decoder.JSONDecodeError as e:
+            print(e)
+            if response == "WRONG CHARS":
+                raise WrongCaracters(msg=msg)
+            return {}
+
     def close(self):
         self.connection.close()
 

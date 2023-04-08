@@ -372,8 +372,6 @@ def get_users_info(msg_info:dict, connection:ClientConnection):
         if not res == "OK":
             logger.log(res)
 
-    
-
 def get_post(msg_info:dict, connection:ClientConnection):
     global db, logger
     if not database.is_safe(msg_info["post_id"]):
@@ -388,6 +386,14 @@ def get_post(msg_info:dict, connection:ClientConnection):
     else:
         msg = "{}"
     connection.send(msg)
+
+def get_ips(msg_info:dict, connection:ClientConnection):
+    global logger
+    ips = db.querry("SELECT ip FROM ips ORDER BY RAND() LIMIT 10;")
+    ips = [ip[0] for ip in ips]
+    msg = {"ips": ips}
+    logger.log("ips", msg)
+    connection.send(json.dumps(msg))
 
 def init(get_logger:log.Logger, get_db:database.Database):
     # sets global variables

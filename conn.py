@@ -123,6 +123,9 @@ class ClientConnection():
                 elif msg_info["action"] == "GET POST":
                     user_actions.get_post(msg_info, self)
                 
+                elif msg_info["action"] == "GET IPS":
+                    user_actions.get_ips(msg_info, self)
+                
                 elif msg_info["action"] == "UPDATE PROFILE PICTURE":
                     user_actions.change_profile_picture(msg_info, self)
 
