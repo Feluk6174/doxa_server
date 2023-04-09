@@ -5,7 +5,7 @@ Android app: https://github.com/Feluk6174/doxa_gui
 
 Simulations: https://github.com/Feluk6174/doxa_simulations
 
-## Instalation guide
+## Instalation guide (Outdated)
 The following installation is for Linux, concretly, ubuntu and arch based distros. The same or similar steps sould work with other OSs, but they might have to be adapted.
 
 For the installation, the `git` pakage will be needed.
