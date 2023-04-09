@@ -13,14 +13,22 @@ print("api", __name__)
 
 class Connection():
     def __init__(self, host: str=None, port: int=None):
-        self.response_queue = []
-        msg = '{"type": "CLIENT"}'
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.response_queue = []
+
+        self.queue_started = False
+
+        thread = threading.Thread(target=self.recv_queue)
+        thread.start()
+
+        msg = '{"type": "CLIENT"}'
+        
         if not host == None:
             self.connection.connect((host,  port))
             self.connection.send(msg.encode("utf-8"))
             if self.connection.recv(1024).decode("utf-8") == "OK":
                 print("[ESTABLISHED CONNECTION]", __name__)
+                self.queue_started = True
             with open("ips.ips", "w") as f:
                 f.write(json.dumps({"ips": self.get_ips()}))
         else:
@@ -37,23 +45,26 @@ class Connection():
                     self.connection.send(msg.encode("utf-8"))
                     if self.connection.recv(1024).decode("utf-8") == "OK":
                         print("[ESTABLISHED CONNECTION]", __name__)
+                        self.queue_started = True
                     final_ips["ips"].append(":".join(ip))
                     connected = True
                     break
                 except ConnectionRefusedError:
+                    pass
+                except OSError:
                     pass
             if not connected:
                 self.connection.connect(("34.175.220.44",  30003))
                 self.connection.send(msg.encode("utf-8"))
                 if self.connection.recv(1024).decode("utf-8") == "OK":
                     print("[ESTABLISHED CONNECTION]", __name__)
+                    self.queue_started = True
                 final_ips["ips"].append("34.175.220.44:30003")
             final_ips["ips"].extend(self.get_ips())
             with open("ips.ips", "w") as f:
                 f.write(json.dumps({"ips": final_ips}))
         
-        thread = threading.Thread(target=self.recv_queue)
-        thread.start()
+        
 
     def register_user(self, user_name:str, public_key, key_path:str, profile_picture:str, info:str):
         time_registered = int(time.time())
@@ -328,14 +339,15 @@ class Connection():
     def recv_queue(self):
         self.run = True
         while self.run:
-            temp = self.connection.recv(1024).decode("utf-8")
-            temp = "}\0{".join(temp.split("}{")).split("\0")
+            if self.queue_started:
+                temp = self.connection.recv(1024).decode("utf-8")
+                temp = "}\0{".join(temp.split("}{")).split("\0")
 
-            if "stop" in temp:
-                break
+                if "stop" in temp:
+                    break
 
-            for msg in temp:
-                self.response_queue.append(msg)
+                for msg in temp:
+                    self.response_queue.append(msg)
         else:
             print(1)
         print("closed thread")
