@@ -13,6 +13,7 @@ services:
 
   db:
     container_name: db
+    restart: always
     image: mariadb:10.9.5-jammy
     volumes:
       - db_data:/var/lib/mysql
