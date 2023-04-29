@@ -1,0 +1,13 @@
+[package]
+name = "doxa"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+mysql = "*"
+ed25519-dalek = "*"
+rand = "0.7.0"
+base64 = "*"
+fstrings = "*"
