@@ -338,16 +338,30 @@ class Connection():
 
     def recv_queue(self):
         self.run = True
+        self.run = True
         while self.run:
-            if self.queue_started:
-                temp = self.connection.recv(1024).decode("utf-8")
-                temp = "}\0{".join(temp.split("}{")).split("\0")
+            try:
+                msg = self.connection.recv(1024).decode("utf-8")
+                if msg == "":
+                    raise socket.error
 
-                if "stop" in temp:
-                    break
-
-                for msg in temp:
-                    self.response_queue.append(msg)
+                for char in msg:
+                    # The first 8 bytes of a message indicate the size of it
+                    # This calculates the size of the message
+                    if self.read < 8:
+                        self.size += int(char)*(10**(7-self.read))
+                    else:
+                        self.message += char
+                    
+                    if self.read == self.size+7 and not self.read == 0:
+                        self.read = 0
+                        self.size = 0
+                        self.response_queue.append(self.message)
+                        self.message = ""
+                    else:
+                        self.read += 1
+            except:
+                pass
         else:
             print(1)
         print("closed thread")
