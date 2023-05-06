@@ -145,27 +145,11 @@ class ClientConnection():
 
     def send(self, msg:str):
         global logger
-        logger.log("sending: "+msg)
-        msg_len = len(msg)
-        msg_id = SHA256.new(msg.encode("utf-8")).hexdigest()
-
-        num = int(msg_len/512)
-        num = num + 1 if not msg_len % 512 == 0 else num
-        
-        send_msg = "{"+f'"type": "NUM", "num": {num}, "id": "{msg_id}"'+"}"
-        temp = self.connection.send(send_msg.encode("utf-8"))
-
-        temp = self.recv_send_response(msg_id)
-        if not temp == "OK":
-            logger.log("S1" + str(temp))
-
-        for i in range(num):
-            msg_part = msg[512*i:512*i+512].replace("\"", '\\"')
-            send_msg = "{"+f'"type": "MSG PART", "id": "{msg_id}", "content": "{msg_part}"'+"}"
-            self.connection.send(send_msg.encode("utf-8"))
-            temp = self.recv_send_response(msg_id)
-            if not temp == "OK":
-                logger.log("S2" + str(temp))
+        logger.log("sending: "+msg)    
+        lenghth = str(len(data))
+        lenghth = ("0"*(8-len(lenghth))+lenghth).encode("utf-8")
+        data = lenghth+data
+        self.connection.send(data)
 
 
 class NodeConnection():

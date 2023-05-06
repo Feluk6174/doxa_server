@@ -298,29 +298,10 @@ class Connection():
             return {}
 
     def send(self, msg:str):
-        msg_len = len(msg)
-        msg_id = SHA256.new(msg.encode("utf-8")).hexdigest()
-
-        num = int(msg_len/512)
-        num = num + 1 if not msg_len % 512 == 0 else num
-        
-        send_msg = "{"+f'"type": "NUM", "num": {num}, "id": "{msg_id}"'+"}"
-        temp = self.connection.send(send_msg.encode("utf-8"))
-
-        temp = json.loads(self.recv_from_queue())
-        temp = temp["response"]
-        if not temp == "OK":
-            print("S1" + str(temp))
-
-        for i in range(num):
-            msg_part = msg[512*i:512*i+512].replace("\"", '\\"')
-            send_msg = "{"+f'"type": "MSG PART", "id": "{msg_id}", "content": "{msg_part}"'+"}"
-            self.connection.send(send_msg.encode("utf-8"))
-            temp = self.recv_from_queue()
-            temp = json.loads(temp)
-            temp = temp["response"]
-            if not temp == "OK":
-                print("S2" + str(temp))
+        lenghth = str(len(data))
+        lenghth = ("0"*(8-len(lenghth))+lenghth).encode("utf-8")
+        data = lenghth+data
+        self.connection.send(data)
 
 
     def recv(self):
