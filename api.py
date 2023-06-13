@@ -15,11 +15,13 @@ class Connection():
     def __init__(self, host: str=None, port: int=None):
         self.connection = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.response_queue = []
+        self.read = 0
+        self.size = 0
+        self.message = ""
 
         self.queue_started = False
 
         thread = threading.Thread(target=self.recv_queue)
-        thread.start()
 
         msg = '{"type": "CLIENT"}'
         
@@ -29,6 +31,9 @@ class Connection():
             if self.connection.recv(1024).decode("utf-8") == "OK":
                 print("[ESTABLISHED CONNECTION]", __name__)
                 self.queue_started = True
+
+            thread.start()
+
             with open("ips.ips", "w") as f:
                 f.write(json.dumps({"ips": self.get_ips()}))
         else:
@@ -48,6 +53,8 @@ class Connection():
                         self.queue_started = True
                     final_ips["ips"].append(":".join(ip))
                     connected = True
+                    thread.start()
+
                     break
                 except ConnectionRefusedError:
                     pass
@@ -60,9 +67,13 @@ class Connection():
                     print("[ESTABLISHED CONNECTION]", __name__)
                     self.queue_started = True
                 final_ips["ips"].append("34.175.220.44:30003")
+            
+            # start thread to be able to get self.get_ips()
+            thread.start()
             final_ips["ips"].extend(self.get_ips())
             with open("ips.ips", "w") as f:
                 f.write(json.dumps({"ips": final_ips}))
+        
         
         
 
@@ -297,32 +308,21 @@ class Connection():
                 raise WrongCaracters(post_id=post_id)
             return {}
 
-    def send(self, msg:str):
-        lenghth = str(len(data))
+    def send(self, data:str):
+        bdata = data.encode("utf-8")
+        lenghth = str(len(bdata))
         lenghth = ("0"*(8-len(lenghth))+lenghth).encode("utf-8")
-        data = lenghth+data
-        self.connection.send(data)
+        bdata = lenghth+bdata
+        self.connection.send(bdata)
 
-
-    def recv(self):
-        data = json.loads(self.recv_from_queue())
-        num = data["num"]
-        msg_id = data["id"]
-        response = "{"+f'"type": "CONN RESPONSE", "response": "OK", "id": "{msg_id}"'+"}"
-        self.connection.send(response.encode("utf-8"))
-        msg = ""
-        for i in range(num):
-            msg += json.loads(self.recv_from_queue())["content"]
-            self.connection.send(response.encode("utf-8"))
-
-        return msg
 
     def recv_queue(self):
+        print("started queue")
         self.run = True
-        self.run = True
-        while self.run:
-            try:
+        while True:
+            if True:
                 msg = self.connection.recv(1024).decode("utf-8")
+                print(msg)
                 if msg == "":
                     raise socket.error
 
@@ -341,13 +341,13 @@ class Connection():
                         self.message = ""
                     else:
                         self.read += 1
-            except:
-                pass
+            #except:
+            #    pass
         else:
             print(1)
         print("closed thread")
 
-    def recv_from_queue(self):
+    def recv(self):
         while True:
             if not len(self.response_queue) == 0:
                 temp = self.response_queue[0]

@@ -48,8 +48,8 @@ class Database():
         conf.init()
         self.connection = mysql.connector.connect(
             host = conf.database("host"), 
-            user = conf.database("user"), 
-            password = conf.database("password"),
+            user = conf.database("root"), 
+            password = conf.database("root_pwd"),
             database = conf.database("database")
         )
 

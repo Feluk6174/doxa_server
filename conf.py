@@ -17,6 +17,8 @@ def read_config_from_env():
                 "user": os.environ["MYSQL_USER"],
                 "password": os.environ["MYSQL_PASSWORD"],
                 "database": os.environ["MYSQL_DATABASE"],
+                "root": "root",
+                "root_pwd": os.environ["MYSQL_ROOT_PASSWORD"]
             }
         }
     except KeyError:

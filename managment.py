@@ -50,15 +50,18 @@ def broadcast(msg, ip):
             formated_msg = msg_text.replace('"', '\\"')
             connection.queue.append(json.loads("{"+f'"type": "ACTION", "action": "SEND", "msg": "{formated_msg}"'+"}"))
 
-def manage_new_client(connection, conn_info):
+def manage_new_client(connection:socket.socket, conn_info):
     global clients, max_clients, logger
     logger.log(f"managing new client", len(clients))
     conn_class = ClientConnection(connection, conn_info)
     if len(clients) <= max_clients:
         clients.append(conn_class)
+        logger.log("appended")
         connection.send("OK".encode("utf-8"))
+        logger.log("sent")
         thread = threading.Thread(target=conn_class.manage_requests)
         thread.start()
+    logger.log("finish")
 
 # Node - Node comunication
 def broadcast_ip(ip:str, node_ip:str):
