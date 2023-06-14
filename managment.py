@@ -9,6 +9,7 @@ import database
 import recomendation
 from conn import NodeConnection, ClientConnection
 from typing import Union
+import api
 
 def import_db(connection:NodeConnection):
     global db
@@ -167,6 +168,9 @@ def main():
         conn_info = json.loads(temp)
         logger.log(conn_info)
 
+        if not conn_info["api"] in api.API_COMPATIBLE:
+            connection.send("API INCOMPATIBLE".encode("utf-8"))
+
         if conn_info["type"] == "NODE":
             manage_new_node(connection, address, conn_info)
 
@@ -197,7 +201,7 @@ def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:d
     get_suposed_connected = lambda n: int(5*math.log2(n))
     get_suposed_connected = lambda n: 3
 
-    server_info = json.loads("{"+f'"type": "NODE", "host": "{HOST}", "port": {PORT}, "ip": "{IP}"'+"}")
+    server_info = json.loads("{"+f'"type": "NODE", "host": "{HOST}", "port": {PORT}, "ip": "{IP}", "api": {api.API_VERSION}'+"}")
 
     max_clients = 10
 

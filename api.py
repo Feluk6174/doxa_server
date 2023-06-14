@@ -8,6 +8,8 @@ from typing import Union
 import random
 import threading
 
+API_VERSION = "0.0.1"
+API_COMPATIBLE = ["0.0.1"]
 
 print("api", __name__)
 
@@ -23,7 +25,7 @@ class Connection():
 
         thread = threading.Thread(target=self.recv_queue)
 
-        msg = '{"type": "CLIENT"}'
+        msg = '{'+f'"type": "CLIENT", "api": "{API_VERSION}"'+'}'
         
         if not host == None:
             self.connection.connect((host,  port))
@@ -31,6 +33,8 @@ class Connection():
             if self.connection.recv(1024).decode("utf-8") == "OK":
                 print("[ESTABLISHED CONNECTION]", __name__)
                 self.queue_started = True
+            else:
+                raise OSError
 
             thread.start()
 
@@ -51,6 +55,8 @@ class Connection():
                     if self.connection.recv(1024).decode("utf-8") == "OK":
                         print("[ESTABLISHED CONNECTION]", __name__)
                         self.queue_started = True
+                    else:
+                        raise OSError
                     final_ips["ips"].append(":".join(ip))
                     connected = True
                     thread.start()
@@ -66,6 +72,8 @@ class Connection():
                 if self.connection.recv(1024).decode("utf-8") == "OK":
                     print("[ESTABLISHED CONNECTION]", __name__)
                     self.queue_started = True
+                else:
+                    raise OSError
                 final_ips["ips"].append("34.175.220.44:30003")
             
             # start thread to be able to get self.get_ips()
