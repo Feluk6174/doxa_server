@@ -39,6 +39,9 @@ class ClientConnection():
                 logger.log(msg)
                 if msg == "":
                     raise socket.error
+                if not msg[0] in "0123456789":
+                    self.connection.close()
+                    raise socket.error
 
                 for char in msg:
                     # The first 8 bytes of a message indicate the size of it
