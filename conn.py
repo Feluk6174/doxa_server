@@ -39,6 +39,7 @@ class ClientConnection():
                 logger.log(msg)
                 if msg == "":
                     raise socket.error
+                    
                 if not msg[0] in "0123456789":
                     self.connection.close()
                     raise socket.error
