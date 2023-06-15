@@ -201,7 +201,7 @@ def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:d
     get_suposed_connected = lambda n: int(5*math.log2(n))
     get_suposed_connected = lambda n: 3
 
-    server_info = json.loads("{"+f'"type": "NODE", "host": "{HOST}", "port": {PORT}, "ip": "{IP}", "api": {api.API_VERSION}'+"}")
+    server_info = json.loads("{"+f'"type": "NODE", "host": "{HOST}", "port": {PORT}, "ip": "{IP}", "api": "{api.API_VERSION}"'+"}")
 
     max_clients = 10
 
