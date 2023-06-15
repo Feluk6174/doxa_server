@@ -168,16 +168,27 @@ def main():
         conn_info = json.loads(temp)
         logger.log(conn_info)
 
-        if not conn_info["api"] in api.API_COMPATIBLE:
+        compatible = True
+
+        try:
+            if not conn_info["api"] in api.API_COMPATIBLE:
+                connection.send("API INCOMPATIBLE".encode("utf-8"))
+                logger.log("closed")
+                connection.close()
+                compatible = False
+
+        except KeyError:
             connection.send("API INCOMPATIBLE".encode("utf-8"))
             logger.log("closed")
             connection.close()
+            compatible = False
 
-        elif conn_info["type"] == "NODE":
-            manage_new_node(connection, address, conn_info)
+        if compatible:        
+            if conn_info["type"] == "NODE":
+                manage_new_node(connection, address, conn_info)
 
-        elif conn_info["type"] == "CLIENT":
-            manage_new_client(connection, conn_info)
+            elif conn_info["type"] == "CLIENT":
+                manage_new_client(connection, conn_info)
 
 def start():
     global get_suposed_connected, db, connections
