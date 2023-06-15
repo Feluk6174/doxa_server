@@ -174,12 +174,14 @@ def main():
             if not conn_info["api"] in api.API_COMPATIBLE:
                 connection.send("API INCOMPATIBLE".encode("utf-8"))
                 logger.log("closed")
+                connection.shutdown()
                 connection.close()
                 compatible = False
 
         except KeyError:
             connection.send("API INCOMPATIBLE".encode("utf-8"))
             logger.log("closed")
+            connection.shutdown()
             connection.close()
             compatible = False
 
