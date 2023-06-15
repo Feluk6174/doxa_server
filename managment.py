@@ -170,8 +170,9 @@ def main():
 
         if not conn_info["api"] in api.API_COMPATIBLE:
             connection.send("API INCOMPATIBLE".encode("utf-8"))
+            connection.close()
 
-        if conn_info["type"] == "NODE":
+        elif conn_info["type"] == "NODE":
             manage_new_node(connection, address, conn_info)
 
         elif conn_info["type"] == "CLIENT":
