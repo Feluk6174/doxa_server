@@ -79,9 +79,10 @@ class Connection():
             
                 # start thread to be able to get self.get_ips()
                 thread.start()
+
             final_ips["ips"].extend(self.get_ips())
             with open("ips.ips", "w") as f:
-                f.write(json.dumps({"ips": final_ips}))
+                f.write(json.dumps({"ips": final_ips["ips"]}))
         
         
         
