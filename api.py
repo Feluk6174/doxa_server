@@ -10,6 +10,7 @@ import threading
 
 API_VERSION = "0.0.1"
 API_COMPATIBLE = ["0.0.1"]
+DEFAULT_HOST = "34.175.220.44:30003"
 
 print("api", __name__)
 
@@ -67,14 +68,14 @@ class Connection():
                 except OSError:
                     pass
             if not connected:
-                self.connection.connect(("34.175.220.44",  30003))
+                self.connection.connect((DEFAULT_HOST.split(":")[0],  int(DEFAULT_HOST.split(":")[1])))
                 self.connection.send(msg.encode("utf-8"))
                 if self.connection.recv(1024).decode("utf-8") == "OK":
                     print("[ESTABLISHED CONNECTION]", __name__)
                     self.queue_started = True
                 else:
                     raise OSError
-                final_ips["ips"].append("34.175.220.44:30003")
+                final_ips["ips"].append(DEFAULT_HOST)
             
             # start thread to be able to get self.get_ips()
             thread.start()
