@@ -9,6 +9,7 @@ import database
 import recomendation
 from conn import NodeConnection, ClientConnection
 from typing import Union
+import api
 
 def import_db(connection:NodeConnection):
     global db
@@ -50,15 +51,18 @@ def broadcast(msg, ip):
             formated_msg = msg_text.replace('"', '\\"')
             connection.queue.append(json.loads("{"+f'"type": "ACTION", "action": "SEND", "msg": "{formated_msg}"'+"}"))
 
-def manage_new_client(connection, conn_info):
+def manage_new_client(connection:socket.socket, conn_info):
     global clients, max_clients, logger
     logger.log(f"managing new client", len(clients))
     conn_class = ClientConnection(connection, conn_info)
     if len(clients) <= max_clients:
         clients.append(conn_class)
+        logger.log("appended")
         connection.send("OK".encode("utf-8"))
+        logger.log("sent")
         thread = threading.Thread(target=conn_class.manage_requests)
         thread.start()
+    logger.log("finish")
 
 # Node - Node comunication
 def broadcast_ip(ip:str, node_ip:str):
@@ -164,11 +168,29 @@ def main():
         conn_info = json.loads(temp)
         logger.log(conn_info)
 
-        if conn_info["type"] == "NODE":
-            manage_new_node(connection, address, conn_info)
+        compatible = True
 
-        elif conn_info["type"] == "CLIENT":
-            manage_new_client(connection, conn_info)
+        try:
+            if not conn_info["api"] in api.API_COMPATIBLE:
+                connection.send("API INCOMPATIBLE".encode("utf-8"))
+                logger.log("closed")
+                connection.shutdown()
+                connection.close()
+                compatible = False
+
+        except KeyError:
+            connection.send("API INCOMPATIBLE".encode("utf-8"))
+            logger.log("closed")
+            connection.shutdown()
+            connection.close()
+            compatible = False
+
+        if compatible:        
+            if conn_info["type"] == "NODE":
+                manage_new_node(connection, address, conn_info)
+
+            elif conn_info["type"] == "CLIENT":
+                manage_new_client(connection, conn_info)
 
 def start():
     global get_suposed_connected, db, connections
@@ -194,7 +216,7 @@ def init(get_logger:log.Logger, get_clients:list, get_connections:list, get_db:d
     get_suposed_connected = lambda n: int(5*math.log2(n))
     get_suposed_connected = lambda n: 3
 
-    server_info = json.loads("{"+f'"type": "NODE", "host": "{HOST}", "port": {PORT}, "ip": "{IP}"'+"}")
+    server_info = json.loads("{"+f'"type": "NODE", "host": "{HOST}", "port": {PORT}, "ip": "{IP}", "api": "{api.API_VERSION}"'+"}")
 
     max_clients = 10
 
