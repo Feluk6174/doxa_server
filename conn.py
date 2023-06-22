@@ -38,10 +38,7 @@ class ClientConnection():
                 msg = self.connection.recv(1024).decode("utf-8")
                 logger.log(msg)
                 if msg == "":
-                    raise socket.error
-                    
-                if not msg[0] in "0123456789":
-                    self.connection.close()
+                    logger.log("Closing because of empty message")
                     raise socket.error
 
                 for char in msg:
