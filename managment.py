@@ -173,19 +173,19 @@ def main():
         try:
             if not conn_info["api"] in api.API_COMPATIBLE:
                 connection.send("API INCOMPATIBLE".encode("utf-8"))
-                logger.log("closed")
-                connection.shutdown()
+                logger.log("closed", socket.SHUT_RDWR)
+                connection.shutdown(socket.SHUT_RDWR)
                 connection.close()
                 compatible = False
 
         except KeyError:
             connection.send("API INCOMPATIBLE".encode("utf-8"))
-            logger.log("closed")
-            connection.shutdown()
+            logger.log("closed", socket.SHUT_RDWR)
+            connection.shutdown(socket.SHUT_RDWR)
             connection.close()
             compatible = False
 
-        if compatible:        
+        if compatible:
             if conn_info["type"] == "NODE":
                 manage_new_node(connection, address, conn_info)
 
