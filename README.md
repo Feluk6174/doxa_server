@@ -27,7 +27,7 @@ Finally you cann run the server with the following command:
 ```bash
 docker compose up -d
 ```
-If you want to se the output of the server in the terminal, runn the command without the `-d
+If you want to se the output of the server in the terminal, runn the command without the `-d`
 
 ## Instalation guide (Manualy)
 ### WARNNING This installation hasnt nbeen checked since Oct 30 2022
