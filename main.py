@@ -31,11 +31,11 @@ def main():
 
     try:
         if sys.argv[2] == "-v":
-            logger = log.Logger(f"main_log_{PORT}_", vervose = True)
+            logger = log.Logger(f"logs/main_log_{PORT}_", vervose = True)
         else:
-            logger = log.Logger(f"main_log_{PORT}_")
+            logger = log.Logger(f"logs/main_log_{PORT}_")
     except IndexError:
-        logger = log.Logger(f"main_log_{PORT}_")
+        logger = log.Logger(f"logs/main_log_{PORT}_")
 
     db = database.Database(logger = logger)
 
