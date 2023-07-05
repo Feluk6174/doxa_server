@@ -3,9 +3,34 @@ In this repository, te code for the server made for our "Treball de recerca" is 
 
 Android app: https://github.com/Feluk6174/doxa_gui
 
-Simulations: https://github.com/Feluk6174/doxa_simulations
+## Instalation guide (Recomended)
+The following installation is done with `docker` and `docker-compose`. 
 
-## Instalation guide (Outdated)
+For the installation, the `git` pakage will be needed.
+
+This project has been tested using python 3.10.7 and python 3.10.4.
+
+Download the database and move into the folder:
+```bash
+    $ git clone https://github.com/Feluk6174/doxa_server.git
+    $ cd doxa_server
+```
+
+First the credentials for the database need to be chosen, for that copy the contents from the `.env.template` to the file `.env`, and complete the filds that arent completed from the `.env` file.
+
+Then you can build the docker using the following command:
+```bash 
+docker compose build
+```
+
+Finally you cann run the server with the following command:
+```bash
+docker compose up -d
+```
+If you want to se the output of the server in the terminal, runn the command without the `-d`
+
+## Instalation guide (Manualy)
+### WARNNING This installation hasnt nbeen checked since Oct 30 2022
 The following installation is for Linux, concretly, ubuntu and arch based distros. The same or similar steps sould work with other OSs, but they might have to be adapted.
 
 For the installation, the `git` pakage will be needed.

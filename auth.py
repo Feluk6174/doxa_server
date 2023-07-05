@@ -9,7 +9,7 @@ from Crypto.Util.Padding import unpad
 import string    
 import random 
 
-def gen_key(passphrase):
+def gen_key(passphrase:str):
     key = RSA.generate(2048)
     encrypted_key = key.export_key(passphrase=passphrase, pkcs=8,
                                   protection="scryptAndAES128-CBC")
@@ -18,7 +18,7 @@ def gen_key(passphrase):
         f.write(encrypted_key)
 
 
-def get_keys(passphrase):
+def get_keys(passphrase:str):
     with open("./rsa_key.bin", "rb") as f:
         encoded_key = f.read()
         key = RSA.import_key(encoded_key, passphrase=passphrase)

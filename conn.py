@@ -21,6 +21,9 @@ class ClientConnection():
         self.temp_msgs = {}
         self.send_responses = []
         self.ip = None
+        self.read = 0
+        self.size = 0
+        self.message = ""
 
         thread = threading.Thread(target=self.process_queue)
         thread.start()
@@ -33,48 +36,32 @@ class ClientConnection():
         while True:
             try:
                 msg = self.connection.recv(1024).decode("utf-8")
+                logger.log(msg)
                 if msg == "":
+                    logger.log("Closing because of empty message")
                     raise socket.error
 
-                # if the client sent t many messages to fast, they can all arribe at in the same connection.recv()
-                # whith ithis we split it into ts parts
-                msgs = msg.replace("}{", "}\0{").split("\0")
-
-                # in this loop the messages are rebuilt
-                for msg in msgs:
-                    msg = json.loads(msg)
+                for char in msg:
+                    # The first 8 bytes of a message indicate the size of it
+                    # This calculates the size of the message
+                    if self.read < 8:
+                        self.size += int(char)*(10**(7-self.read))
+                    else:
+                        self.message += char
                     
-                    # in this part the server sees the amount of pparts the message will come from
-                    # and the id thet will identify them, and stores that in a dict, which contains a dict
-                    # which contains the the content (at the start it is empty), the num of parts that have to come
-                    # and the num of prts that alredy came
-                    if msg["type"] == "NUM" and not msg["num"] == 0:
-                        self.temp_msgs[msg["id"]] = {"content": "", "num": msg["num"], "act_num": 0}
-                        send_msg = "{"+f'"type": "CONN RESPONSE", "response": "OK", "id": "{msg["id"]}"'+"}"
-                        self.connection.send(send_msg.encode("utf-8"))
+                    if self.read == self.size+7 and not self.read == 0:
+                        self.read = 0
+                        self.size = 0
+                        message_dict:dict = json.loads(self.message)
+                        if message_dict["type"] == "ACTION":
+                            self.queue.append(message_dict)
+                        elif message_dict["type"] == "RESPONSE":
+                            self.responses.append(message_dict)
+                        self.message = ""
+                    else:
+                        self.read += 1
 
-                    # this prossesed a part of a message
-                    # first it append the content to the dict anth then adds one to the amoun of parts that have arried
-                    # then it checks if all parts have arribed
-                    # if it has t loads the content to a dict
-                    # then depending on the type it is added to the queue (self.queue) or the reponses queue (self.responses)
-                    # then it sends confimation to theclient
-                    if msg["type"] == "MSG PART":
-                        self.temp_msgs[msg["id"]]["content"] += msg["content"]
-                        self.temp_msgs[msg["id"]]["act_num"] += 1
-
-                        if self.temp_msgs[msg["id"]]["num"] == self.temp_msgs[msg["id"]]["act_num"]:
-                            res_msg = json.loads(self.temp_msgs[msg["id"]]["content"])
-                            if res_msg["type"] == "ACTION":
-                                self.queue.append(res_msg)
-                            elif res_msg["type"] == "RESPONSE":
-                                self.responses.append(res_msg)
-                        send_msg = "{"+f'"type": "CONN RESPONSE", "response": "OK", "id": "{msg["id"]}"'+"}"
-                        self.connection.send(send_msg.encode("utf-8"))
-                    
-                    # if the the response is for the slf.send function, it is added to the the corresponding queue
-                    if msg["type"] == "CONN RESPONSE":
-                        self.send_responses.append(msg)
+                
 
             # if there is a socket error, which can be caused by a client disconecting or the internet going out 
             # the error will be logged, then the client will be removed from thee clients list
@@ -161,27 +148,13 @@ class ClientConnection():
 
     def send(self, msg:str):
         global logger
-        logger.log("sending: "+msg)
-        msg_len = len(msg)
-        msg_id = SHA256.new(msg.encode("utf-8")).hexdigest()
-
-        num = int(msg_len/512)
-        num = num + 1 if not msg_len % 512 == 0 else num
-        
-        send_msg = "{"+f'"type": "NUM", "num": {num}, "id": "{msg_id}"'+"}"
-        temp = self.connection.send(send_msg.encode("utf-8"))
-
-        temp = self.recv_send_response(msg_id)
-        if not temp == "OK":
-            logger.log("S1" + str(temp))
-
-        for i in range(num):
-            msg_part = msg[512*i:512*i+512].replace("\"", '\\"')
-            send_msg = "{"+f'"type": "MSG PART", "id": "{msg_id}", "content": "{msg_part}"'+"}"
-            self.connection.send(send_msg.encode("utf-8"))
-            temp = self.recv_send_response(msg_id)
-            if not temp == "OK":
-                logger.log("S2" + str(temp))
+        bmsg = msg.encode("utf-8")
+        logger.log("sending: "+msg)    
+        lenghth = str(len(bmsg))
+        lenghth = ("0"*(8-len(lenghth))+lenghth).encode("utf-8")
+        bmsg = lenghth+bmsg
+        logger.log("sent", bmsg)
+        self.connection.send(bmsg)
 
 
 class NodeConnection():
@@ -198,6 +171,10 @@ class NodeConnection():
         self.temp_msgs = {}
         self.ip = self.info["ip"]
         self.real_ip = address
+        self.read = 0
+        self.size = 0
+        self.message = ""
+
         global logger 
         logger.log("connected by", self.ip)
 
@@ -212,50 +189,29 @@ class NodeConnection():
         while True:
             try:
                 msg = self.connection.recv(1024).decode("utf-8")
+                logger.log(msg)
                 if msg == "":
                     raise socket.error
-                
-                # if the client sent t many messages to fast, they can all arribe at in the same connection.recv()
-                # whith ithis we split it into ts parts
-                msgs = msg.replace("}{", "}\0{").split("\0")
-                
-                # in this loop the messages are rebuilt
-                for msg in msgs:
-                    msg = json.loads(msg)
-                    logger.log("msg", msg)
 
-                    # in this part the server sees the amount of pparts the message will come from
-                    # and the id thet will identify them, and stores that in a dict, which contains a dict
-                    # which contains the the content (at the start it is empty), the num of parts that have to come
-                    # and the num of prts that alredy came
-                    if msg["type"] == "NUM" and not msg["num"] == 0:
-                        self.temp_msgs[msg["id"]] = {"content": "", "num": msg["num"], "act_num": 0}
-                        send_msg = "{"+f'"type": "CONN RESPONSE", "response": "OK", "id": "{msg["id"]}"'+"}"
-                        self.connection.send(send_msg.encode("utf-8"))
-
-                    # this prossesed a part of a message
-                    # first it append the content to the dict anth then adds one to the amoun of parts that have arried
-                    # then it checks if all parts have arribed
-                    # if it has t loads the content to a dict
-                    # then depending on the type it is added to the queue (self.queue) or the reponses queue (self.responses)
-                    # then it sends confimation to the client
-                    if msg["type"] == "MSG PART":
-                        self.temp_msgs[msg["id"]]["content"] += msg["content"]
-                        self.temp_msgs[msg["id"]]["act_num"] += 1
-
-                        if self.temp_msgs[msg["id"]]["num"] == self.temp_msgs[msg["id"]]["act_num"]:
-                            res_msg = json.loads(self.temp_msgs[msg["id"]]["content"])
-                            if res_msg["type"] == "ACTION":
-                                self.queue.append(res_msg)
-                            elif res_msg["type"] == "RESPONSE":
-                                self.responses.append(res_msg)
-                        send_msg = "{"+f'"type": "CONN RESPONSE", "response": "OK", "id": "{msg["id"]}"'+"}"
-                        self.connection.send(send_msg.encode("utf-8"))
+                for char in msg:
+                    # The first 8 bytes of a message indicate the size of it
+                    # This calculates the size of the message
+                    if self.read < 8:
+                        self.size += int(char)*(10**(7-self.read))
+                    else:
+                        self.message += char
                     
-                    # if the the response is for the slf.send function, it is added to the the corresponding queue
-                    if msg["type"] == "CONN RESPONSE":
-                        logger.log("queueing", msg)
-                        self.send_responses.append(msg)
+                    if self.read == self.size+7 and not self.read == 0:
+                        self.read = 0
+                        self.size = 0
+                        message_dict:dict = json.loads(self.message)
+                        if message_dict["type"] == "ACTION":
+                            self.queue.append(message_dict)
+                        elif message_dict["type"] == "RESPONSE":
+                            self.responses.append(message_dict)
+                        self.message = ""
+                    else:
+                        self.read += 1
 
             except socket.error as e:
                 logger.log("[ERROR]" + str(e))
@@ -314,6 +270,26 @@ class NodeConnection():
 
                 self.queue.pop(0)
     
+
+    def recv_from_queue(self):
+        global logger
+        while True:
+            if not len(self.responses) == 0:
+                res = self.responses[0]
+                self.responses.pop(0)
+                return res
+
+    def recv_send_response(self, msg_id:str):
+        global logger
+        while True:
+            if not len(self.send_responses) == 0:
+                for i, response in enumerate(self.send_responses):
+                    if response["id"] == msg_id:
+                        res = response["response"]
+                        self.send_responses.pop(i)
+                        return res
+
+
     def recv_from_queue(self):
         while True:
             if not len(self.responses) == 0:
@@ -331,6 +307,16 @@ class NodeConnection():
                         self.send_responses.pop(i)
                         return res
 
+
+    def send(self, msg:str):
+        global logger
+        bmsg = msg.encode("utf-8")
+        logger.log("sending: "+msg)    
+        lenghth = str(len(bmsg))
+        lenghth = ("0"*(8-len(lenghth))+lenghth).encode("utf-8")
+        bmsg = lenghth+bmsg
+        logger.log("sent", bmsg)
+        self.connection.send(bmsg)
 
     def send(self, msg:str):
         global logger
