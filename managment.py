@@ -159,16 +159,21 @@ def main():
     global server, logger
     while True:
         connection, address = server.accept()
-        temp = connection.recv(1024).decode("utf-8")
-        logger.log(temp)
-        conn_info = json.loads(temp)
-        logger.log(conn_info)
+        try:
+            temp = connection.recv(1024).decode("utf-8")
+            logger.log(temp)
+            conn_info = json.loads(temp)
+            logger.log(conn_info)
 
-        if conn_info["type"] == "NODE":
-            manage_new_node(connection, address, conn_info)
+            if conn_info["type"] == "NODE":
+                manage_new_node(connection, address, conn_info)
 
-        elif conn_info["type"] == "CLIENT":
-            manage_new_client(connection, conn_info)
+            elif conn_info["type"] == "CLIENT":
+                manage_new_client(connection, conn_info)
+        except Exception as e:
+            connection.close()
+            logger.log("[ERROR] --- SOMETHING CAUSED {e} IN THE MAIN THREAD ---")
+
 
 def start():
     global get_suposed_connected, db, connections
